@@ -53,7 +53,13 @@ h1{font-size:18px;margin:0}header .spacer{flex:1}.status{font-size:12px;color:va
 <aside class="panel sidebar"><div class="sidebar-inner">
 <section><h3>チャート一覧</h3><div id="chartList" class="chart-list"></div></section>
 <section><h3>アイコン一覧</h3><div class="row"><button id="addPreset">＋ プリセット</button><button id="uploadIcon">画像追加</button><input type="file" id="iconFile" accept="image/*" class="hidden"></div><div id="iconBank" class="iconbank"></div><p class="small">アイコンを選択後、盤面をクリックすると配置できます。</p></section>
-<section><h3>選択中のアイコン</h3><div id="selectionInfo" class="small">アイコンを選択してください。</div><button id="editMarker" disabled>名前・コメントを編集</button><button id="deleteMarker" class="danger" disabled>盤面から削除</button></section>
+<section>
+<h3>選択中のアイコン・駒</h3>
+<div id="selectionInfo" class="small">アイコンを選択してください。</div>
+<button id="editMarker" disabled>名前・コメントを編集</button>
+<button id="deleteMarker" class="danger" disabled>盤面から削除</button>
+<button id="deleteIcon" class="danger" disabled>アイコン一覧から削除</button>
+</section>
 </div></aside>
 <section id="charts"></section>
 </div>
@@ -97,7 +103,9 @@ function render(){
       ${c.markers.map(m=>{let ic=state.icons.find(i=>i.id===m.iconId)||{};return `<div class="marker ${selectedMarker===m.id?"selected":""}" data-marker="${m.id}" data-chart="${c.id}" style="left:${m.x*100}%;top:${m.y*100}%;background:${ic.color||colors[0]}">${ic.image?`<img draggable="false" src="${ic.image}">`:`<span class="initial">${esc(ic.initial||ic.name?.slice(0,1)||"？")}</span>`}<span class="marker-name">${esc(m.name||ic.name||"")}</span></div>`}).join("")}
     </div></article>`).join("");
   $("selectionInfo").textContent=selectedMarker?findMarker(selectedMarker)?.marker.comment||"選択中。名前・コメントを編集できます。":"アイコンを選択してください。";
-  $("editMarker").disabled=!selectedMarker;$("deleteMarker").disabled=!selectedMarker;
+  $("editMarker").disabled=!selectedMarker;
+$("deleteMarker").disabled=!selectedMarker;
+$("deleteIcon").disabled=!selectedIcon || !state.icons.some(i=>i.id===selectedIcon);
   $("layoutToggle").textContent=layout==="multi"?"表示：複数":"表示：1つ";
 }
 function findMarker(id){for(const c of state.charts){const marker=c.markers.find(m=>m.id===id);if(marker)return {chart:c,marker}}return null}
@@ -141,6 +149,27 @@ $("uploadIcon").onclick=()=>$("iconFile").click();
 $("iconFile").onchange=async e=>{const file=e.target.files[0];if(!file)return;if(file.size>450000){alert("画像は450KB以下にしてください。");return}const data=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)});addIcon({id:uid(),name:file.name.replace(/\.[^.]+$/,""),image:data,color:colors[state.icons.length%colors.length]});e.target.value=""};
 $("editMarker").onclick=editSelected;
 $("deleteMarker").onclick=()=>{const f=findMarker(selectedMarker);if(!f)return;mutate(()=>{f.chart.markers=f.chart.markers.filter(m=>m.id!==selectedMarker);selectedMarker=null})};
+$("deleteIcon").onclick=()=>{
+  const icon=state.icons.find(i=>i.id===selectedIcon);
+  if(!icon)return;
+
+  const count=state.charts.reduce(
+    (n,c)=>n+c.markers.filter(m=>m.iconId===icon.id).length,0
+  );
+
+  if(!confirm(
+    `「${icon.name||"名前なし"}」をアイコン一覧から削除しますか？\nこのアイコンを使っている盤面上の駒 ${count} 個も削除されます。`
+  ))return;
+
+  mutate(()=>{
+    state.icons=state.icons.filter(i=>i.id!==icon.id);
+    state.charts.forEach(c=>{
+      c.markers=c.markers.filter(m=>m.iconId!==icon.id);
+    });
+    if(selectedMarker&&!findMarker(selectedMarker))selectedMarker=null;
+    selectedIcon=null;
+  });
+};
 let suppressBoardClick = false;
 $("charts").addEventListener("click",e=>{
   if(suppressBoardClick){
