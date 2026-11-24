@@ -124,7 +124,8 @@ async function join(){
   const hash=[...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,"0")).join("");
   const database=getDatabase(app);dbRef=ref(database,"rooms/"+hash);
   const url=new URL(location.href);url.searchParams.set("room",room);history.replaceState({}, "", url);
-  unsubscribe=onValue(dbRef,snap=>{applyingRemote=true;state=snap.exists()?snap.val():defaultState();if(!state.charts)state=defaultState();if(!activeChart)activeChart=state.charts[0]?.id;render();applyingRemote=false;$("syncStatus").textContent="● 同期中";});
+  unsubscribe=onValue(dbRef,snap=>{applyingRemote=true;state=snap.exists()?snap.val():defaultState();if(!Array.isArray(state.charts))state=defaultState();
+state.charts.forEach(c=>{if(!Array.isArray(c.markers))c.markers=[];});if(!activeChart)activeChart=state.charts[0]?.id;render();applyingRemote=false;$("syncStatus").textContent="● 同期中";});
   hide("gate");show("app");$("syncStatus").textContent="接続済み";
  }catch(e){$("gateError").textContent="接続できませんでした。Firebase設定・匿名認証・データベースルールを確認してください。";console.error(e)}
 }
@@ -140,20 +141,80 @@ $("uploadIcon").onclick=()=>$("iconFile").click();
 $("iconFile").onchange=async e=>{const file=e.target.files[0];if(!file)return;if(file.size>450000){alert("画像は450KB以下にしてください。");return}const data=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)});addIcon({id:uid(),name:file.name.replace(/\.[^.]+$/,""),image:data,color:colors[state.icons.length%colors.length]});e.target.value=""};
 $("editMarker").onclick=editSelected;
 $("deleteMarker").onclick=()=>{const f=findMarker(selectedMarker);if(!f)return;mutate(()=>{f.chart.markers=f.chart.markers.filter(m=>m.id!==selectedMarker);selectedMarker=null})};
+let suppressBoardClick = false;
 $("charts").addEventListener("click",e=>{
- const axis=e.target.closest("[data-axis]");if(axis){axisEditor(axis.dataset.axis);return}
- const rm=e.target.closest("[data-remove]");if(rm){if(confirm("このチャートを削除しますか？"))mutate(()=>{state.charts=state.charts.filter(c=>c.id!==rm.dataset.remove);activeChart=state.charts[0]?.id||null});return}
- const marker=e.target.closest("[data-marker]");if(marker){selectedMarker=marker.dataset.marker;render();return}
- const board=e.target.closest("[data-board]");if(board&&selectedIcon){const rect=board.getBoundingClientRect();const x=Math.max(.04,Math.min(.96,(e.clientX-rect.left)/rect.width)),y=Math.max(.07,Math.min(.93,(e.clientY-rect.top)/rect.height));mutate(()=>{const c=state.charts.find(c=>c.id===board.dataset.board);c.markers.push({id:uid(),iconId:selectedIcon,x,y,name:"",comment:""});selectedMarker=c.markers.at(-1).id})}
+  if(suppressBoardClick){
+    suppressBoardClick=false;
+    e.preventDefault();
+    e.stopPropagation();
+    return;
+  }
+  const axis=e.target.closest("[data-axis]");
+  if(axis){axisEditor(axis.dataset.axis);return}
+  const rm=e.target.closest("[data-remove]");
+  if(rm){if(confirm("このチャートを削除しますか？"))mutate(()=>{
+    state.charts=state.charts.filter(c=>c.id!==rm.dataset.remove);
+    activeChart=state.charts[0]?.id||null
+  });return}
+  const marker=e.target.closest("[data-marker]");
+  if(marker){selectedMarker=marker.dataset.marker;render();return}
+  const board=e.target.closest("[data-board]");
+  if(board&&selectedIcon){
+    const rect=board.getBoundingClientRect();
+    const x=Math.max(.04,Math.min(.96,(e.clientX-rect.left)/rect.width));
+    const y=Math.max(.07,Math.min(.93,(e.clientY-rect.top)/rect.height));
+    mutate(()=>{
+      const c=state.charts.find(c=>c.id===board.dataset.board);
+      if(!Array.isArray(c.markers))c.markers=[];
+      c.markers.push({id:uid(),iconId:selectedIcon,x,y,name:"",comment:""});
+      selectedMarker=c.markers.at(-1).id
+    })
+  }
 });
 $("charts").addEventListener("change",e=>{const title=e.target.closest("[data-title]");if(title)mutate(()=>{const c=state.charts.find(c=>c.id===title.dataset.title);if(c)c.title=title.value})});
 $("chartList").onclick=e=>{const b=e.target.closest("[data-chart]");if(b){activeChart=b.dataset.chart;if(layout==="multi")layout="single";render()}};
 $("iconBank").onclick=e=>{const b=e.target.closest("[data-icon]");if(b){selectedIcon=b.dataset.icon;render();$("selectionInfo").textContent="配置するアイコン："+(state.icons.find(i=>i.id===selectedIcon)?.name||"")}};
 let drag=null;
-$("charts").addEventListener("pointerdown",e=>{const el=e.target.closest("[data-marker]");if(!el)return;const f=findMarker(el.dataset.marker);if(!f)return;selectedMarker=f.marker.id;drag={id:f.marker.id,chartId:f.chart.id,board:el.closest("[data-board]"),pointer:e.pointerId};el.setPointerCapture(e.pointerId);e.preventDefault()});
-$("charts").addEventListener("pointermove",e=>{if(!drag)return;const rect=drag.board.getBoundingClientRect(),f=findMarker(drag.id);if(!f)return;f.marker.x=Math.max(.03,Math.min(.97,(e.clientX-rect.left)/rect.width));f.marker.y=Math.max(.05,Math.min(.95,(e.clientY-rect.top)/rect.height));const el=drag.board.querySelector(`[data-marker="${drag.id}"]`);if(el){el.style.left=f.marker.x*100+"%";el.style.top=f.marker.y*100+"%"}});
-$("charts").addEventListener("pointerup",()=>{if(drag){drag=null;render();persist()}});
-$("exportJson").onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});download(blob,"cross-chart-backup.json")};
+$("charts").addEventListener("pointerdown",e=>{
+  const el=e.target.closest("[data-marker]");
+  if(!el)return;
+  const f=findMarker(el.dataset.marker);
+  if(!f)return;
+  selectedMarker=f.marker.id;
+  drag={id:f.marker.id,chartId:f.chart.id,board:el.closest("[data-board]"),pointer:e.pointerId};
+  el.setPointerCapture(e.pointerId);
+  e.preventDefault()
+});
+$("charts").addEventListener("pointermove",e=>{
+  if(!drag)return;
+  const rect=drag.board.getBoundingClientRect(),f=findMarker(drag.id);
+  if(!f)return;
+  f.marker.x=Math.max(.03,Math.min(.97,(e.clientX-rect.left)/rect.width));
+  f.marker.y=Math.max(.05,Math.min(.95,(e.clientY-rect.top)/rect.height));
+  const el=drag.board.querySelector(`[data-marker="${drag.id}"]`);
+  if(el){
+    el.style.left=f.marker.x*100+"%";
+    el.style.top=f.marker.y*100+"%"
+  }
+});
+$("charts").addEventListener("pointerup",()=>{
+  if(drag){
+    drag=null;
+    suppressBoardClick=true;
+    render();
+    persist();
+    setTimeout(()=>{suppressBoardClick=false},300)
+  }
+});
+$("charts").addEventListener("pointercancel",()=>{
+  if(drag){
+    drag=null;
+    suppressBoardClick=true;
+    render();
+    persist();
+    setTimeout(()=>{suppressBoardClick=false},300)
+  }
+});$("exportJson").onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});download(blob,"cross-chart-backup.json")};
 $("importJson").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const obj=JSON.parse(await f.text());if(!Array.isArray(obj.charts)||!Array.isArray(obj.icons))throw 0;if(confirm("現在の盤面を読み込んだデータで置き換えますか？"))mutate(()=>{state=obj;activeChart=state.charts[0]?.id})}catch{alert("読み込めないJSONファイルです")}e.target.value=""};
 function download(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href)}
 $("exportPng").onclick=async()=>{if(!window.html2canvas){await new Promise((res,rej)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";s.onload=res;s.onerror=rej;document.head.append(s)})}const node=$("charts");const canvas=await window.html2canvas(node,{backgroundColor:"#f4f5f8",scale:2});canvas.toBlob(blob=>download(blob,"cross-chart.png"))};
