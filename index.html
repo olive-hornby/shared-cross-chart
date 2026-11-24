@@ -95,8 +95,8 @@ function render(){
   $("chartList").innerHTML=state.charts.map(c=>`<button data-chart="${c.id}" class="${c.id===activeChart?"active":""}">${esc(c.title||"無題チャート")}</button>`).join("");
   $("iconBank").innerHTML=state.icons.map(i=>`<button class="bank-icon" data-icon="${i.id}" title="${esc(i.name)}" style="background:${i.color||colors[0]}">${i.image?`<img src="${i.image}">`:`${esc(i.initial||i.name?.slice(0,1)||"？")}`}</button>`).join("");
   const visible=layout==="single"?(state.charts.filter(c=>c.id===activeChart)):state.charts;
-  $("charts").innerHTML=visible.map(c=>`<article class="chart-card ${layout==="single"?"focus":""}" data-card="${c.id}">
-    <div class="chart-head"><input data-title="${c.id}" value="${esc(c.title)}" aria-label="チャート名"><span class="spacer"></span><button data-axis="${c.id}">軸ラベル</button><button class="danger" data-remove="${c.id}">削除</button></div>
+  $("charts").innerHTML=visible.map(c=>`<article class="chart-card ${layout==="single"?"focus":""}" data-card="${c.id}" style="background:${esc(c.bgColor||"#ffffff")}">
+    <div class="chart-head"><input data-title="${c.id}" value="${esc(c.title)}" aria-label="チャート名"><span class="spacer"></span><button data-color="${c.id}">背景色</button><button data-axis="${c.id}">軸ラベル</button><button class="danger" data-remove="${c.id}">削除</button></div>
     <div class="board" data-board="${c.id}">
       <div class="axis x"></div><div class="axis y"></div>
       <div class="axis-label top">${esc(c.top)}</div><div class="axis-label bottom">${esc(c.bottom)}</div><div class="axis-label left">${esc(c.left)}</div><div class="axis-label right">${esc(c.right)}</div>
@@ -180,7 +180,22 @@ $("demoBtn").onclick=startDemo;
 if(validConfig()){hide("setup");show("gate");const r=new URLSearchParams(location.search).get("room");if(r)$("roomId").value=r;}else{show("setup")}
 $("joinBtn").onclick=join;
 $("copyLink").onclick=async()=>{await navigator.clipboard.writeText(location.href);$("syncStatus").textContent="URLをコピーしました"};
-$("addChart").onclick=()=>mutate(()=>{const c={id:uid(),title:"チャート "+(state.charts.length+1),top:"好き",bottom:"嫌い",left:"苦手",right:"得意",markers:[]};state.charts.push(c);activeChart=c.id});
+
+$("addChart").onclick=()=>mutate(()=>{
+  const c={
+    id:uid(),
+    title:"チャート "+(state.charts.length+1),
+    top:"好き",
+    bottom:"嫌い",
+    left:"苦手",
+    right:"得意",
+    markers:[],
+    bgColor:"#ffffff"
+  };
+  state.charts.push(c);
+  activeChart=c.id
+});
+
 $("layoutToggle").onclick=()=>{layout=layout==="multi"?"single":"multi";render()};
 $("addPreset").onclick=()=>{const name=prompt("アイコンの名前（例：探索者A）","新しいアイコン");if(name)addIcon({id:uid(),name,initial:name.slice(0,1),color:colors[state.icons.length%colors.length]})};
 $("uploadIcon").onclick=()=>$("iconFile").click();
@@ -214,6 +229,20 @@ $("charts").addEventListener("click",e=>{
     suppressBoardClick=false;
     e.preventDefault();
     e.stopPropagation();
+    return;
+  }
+  const colorBtn=e.target.closest("[data-color]");
+  if(colorBtn){
+    const c=state.charts.find(c=>c.id===colorBtn.dataset.color);
+    if(!c)return;
+
+    const picker=document.createElement("input");
+    picker.type="color";
+    picker.value=c.bgColor||"#ffffff";
+    picker.onchange=()=>{
+      mutate(()=>{c.bgColor=picker.value});
+    };
+    picker.click();
     return;
   }
   const axis=e.target.closest("[data-axis]");
