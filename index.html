@@ -67,13 +67,14 @@ import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebase
 
 // Firebase Console > Project settings > Your apps で取得した値に置き換える
 const firebaseConfig = {
-  apiKey: "AIzaSyBIK8mbTxhdOT0yFNzqvMs9pmSq8xY-VBs",
+  apiKey: "AIzaSyBIk8mbTxhdOT0yFNzqvMs9pmSq8xY-VBs",
   authDomain: "uchiyoso-fukabori-crosschart.firebaseapp.com",
   databaseURL: "https://uchiyoso-fukabori-crosschart-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "uchiyoso-fukabori-crosschart",
   storageBucket: "uchiyoso-fukabori-crosschart.firebasestorage.app",
   messagingSenderId: "483290801051",
-  appId: "1:483290801051:web:1bf699748ff1a61c7bf73e"
+  appId: "1:483290801051:web:1bf699748ff1a61c7bf73e",
+  measurementId: "G-N3BTKPX1PY"
 };
 const $ = id => document.getElementById(id);
 const defaultState = () => ({charts:[{id:uid(),title:"チャート 1",top:"好き",bottom:"嫌い",left:"苦手",right:"得意",markers:[]}],icons:[]});
