@@ -224,6 +224,7 @@ $("deleteIcon").onclick=()=>{
   });
 };
 let suppressBoardClick = false;
+
 $("charts").addEventListener("click",e=>{
   if(suppressBoardClick){
     suppressBoardClick=false;
@@ -231,6 +232,7 @@ $("charts").addEventListener("click",e=>{
     e.stopPropagation();
     return;
   }
+
   const colorBtn=e.target.closest("[data-color]");
   if(colorBtn){
     const c=state.charts.find(c=>c.id===colorBtn.dataset.color);
@@ -245,28 +247,49 @@ $("charts").addEventListener("click",e=>{
     picker.click();
     return;
   }
+
   const axis=e.target.closest("[data-axis]");
   if(axis){axisEditor(axis.dataset.axis);return}
+
   const rm=e.target.closest("[data-remove]");
-  if(rm){if(confirm("このチャートを削除しますか？"))mutate(()=>{
-    state.charts=state.charts.filter(c=>c.id!==rm.dataset.remove);
-    activeChart=state.charts[0]?.id||null
-  });return}
+  if(rm){
+    if(confirm("このチャートを削除しますか？")){
+      mutate(()=>{
+        state.charts=state.charts.filter(c=>c.id!==rm.dataset.remove);
+        activeChart=state.charts[0]?.id||null;
+      });
+    }
+    return;
+  }
+
   const marker=e.target.closest("[data-marker]");
-  if(marker){selectedMarker=marker.dataset.marker;render();return}
+  if(marker){
+    selectedMarker=marker.dataset.marker;
+    render();
+    return;
+  }
+
   const board=e.target.closest("[data-board]");
   if(board&&selectedIcon){
     const rect=board.getBoundingClientRect();
     const x=Math.max(.04,Math.min(.96,(e.clientX-rect.left)/rect.width));
     const y=Math.max(.07,Math.min(.93,(e.clientY-rect.top)/rect.height));
+
     mutate(()=>{
       const c=state.charts.find(c=>c.id===board.dataset.board);
       if(!Array.isArray(c.markers))c.markers=[];
-      c.markers.push({id:uid(),iconId:selectedIcon,x,y,name:"",comment:""});
-      selectedMarker=c.markers.at(-1).id
-    })
+      c.markers.push({
+        id:uid(),
+        iconId:selectedIcon,
+        x,y,
+        name:"",
+        comment:""
+      });
+      selectedMarker=c.markers.at(-1).id;
+    });
   }
 });
+
 $("charts").addEventListener("change",e=>{const title=e.target.closest("[data-title]");if(title)mutate(()=>{const c=state.charts.find(c=>c.id===title.dataset.title);if(c)c.title=title.value})});
 $("chartList").onclick=e=>{const b=e.target.closest("[data-chart]");if(b){activeChart=b.dataset.chart;if(layout==="multi")layout="single";render()}};
 $("iconBank").onclick=e=>{const b=e.target.closest("[data-icon]");if(b){selectedIcon=b.dataset.icon;render();$("selectionInfo").textContent="配置するアイコン："+(state.icons.find(i=>i.id===selectedIcon)?.name||"")}};
