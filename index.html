@@ -18,7 +18,7 @@ h1{font-size:18px;margin:0}header .spacer{flex:1}.status{font-size:12px;color:va
 .board{position:relative;width:100%;aspect-ratio:1.2/1;background:#fff;border:1px solid #d9deea;border-radius:8px;overflow:hidden;touch-action:pan-y}
 .axis{position:absolute;background:#9aa4b5;pointer-events:none}.axis.x{height:1px;width:100%;top:50%;left:0}.axis.y{width:1px;height:100%;left:50%;top:0}
 .axis-label{position:absolute;font-size:12px;color:#657087;background:#ffffffd9;padding:2px 5px;border-radius:4px;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;pointer-events:none}.axis-label.top{top:5px;left:50%;transform:translateX(-50%)}.axis-label.bottom{bottom:5px;left:50%;transform:translateX(-50%)}.axis-label.left{left:5px;top:50%;transform:translateY(-50%)}.axis-label.right{right:5px;top:50%;transform:translateY(-50%)}
-.marker{position:absolute;width:54px;height:54px;transform:translate(-50%,-50%);border:2px solid white;border-radius:50%;box-shadow:0 2px 8px #17203355;cursor:grab;display:flex;align-items:center;justify-content:center;overflow:clip;background:#dce4ff;color:#29365e;font-weight:700;user-select:none;touch-action:none}
+.marker{position:absolute;width:54px;height:54px;transform:translate(-50%,-50%);border:2px solid white;border-radius:50%;box-shadow:0 2px 8px #17203355;cursor:grab;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#dce4ff;color:#29365e;font-weight:700;user-select:none;touch-action:none}
 .marker img{width:100%;height:100%;object-fit:cover}.marker .initial{font-size:18px}.marker.selected{outline:3px solid var(--accent);outline-offset:2px}.marker-name{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:2px;white-space:nowrap;font-size:10px;color:#344054;background:#fffE;padding:1px 4px;border-radius:4px;pointer-events:none;max-width:90px;overflow:hidden;text-overflow:ellipsis}
 .iconbank{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.bank-icon{width:42px;height:42px;border-radius:50%;padding:0;overflow:hidden;border:2px solid white;box-shadow:0 1px 4px #0002;font-weight:700}.bank-icon img{width:100%;height:100%;object-fit:cover}
 .small{font-size:12px;color:var(--muted)}.hidden{display:none!important}.row{display:flex;gap:8px;align-items:center}.row>*{min-width:0}.modal-back{position:fixed;inset:0;background:#17203366;display:grid;place-items:center;padding:16px;z-index:10}.modal{width:min(100%,480px);max-height:90vh;overflow:auto;background:white;border-radius:14px;padding:18px;box-shadow:0 15px 60px #0003}.modal h3{margin-top:0}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
@@ -334,6 +334,7 @@ $("charts").addEventListener("pointercancel",()=>{
 });$("exportJson").onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});download(blob,"cross-chart-backup.json")};
 $("importJson").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const obj=JSON.parse(await f.text());if(!Array.isArray(obj.charts)||!Array.isArray(obj.icons))throw 0;if(confirm("現在の盤面を読み込んだデータで置き換えますか？"))mutate(()=>{state=obj;activeChart=state.charts[0]?.id})}catch{alert("読み込めないJSONファイルです")}e.target.value=""};
 function download(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href)}
+
 $("exportPng").onclick=async()=>{
   if(!window.html2canvas){
     await new Promise((res,rej)=>{
@@ -347,7 +348,6 @@ $("exportPng").onclick=async()=>{
 
   const node=$("charts");
 
-  // 画像の読み込み完了を待つ
   const images=Array.from(node.querySelectorAll("img"));
   await Promise.all(images.map(img=>{
     if(img.complete && img.naturalWidth>0){
@@ -359,20 +359,44 @@ $("exportPng").onclick=async()=>{
     });
   }));
 
-  // フォントの読み込みも待つ
   if(document.fonts && document.fonts.ready){
     await document.fonts.ready;
   }
 
-  const canvas=await window.html2canvas(node,{
-    backgroundColor:"#f4f5f8",
-    scale:2,
-    useCORS:true
-  });
+  // PNG書き出し中だけマーカーの位置指定を変更
+  const markers=Array.from(node.querySelectorAll(".marker"));
+  const originalStyles=markers.map(marker=>({
+    transform:marker.style.transform,
+    left:marker.style.left,
+    top:marker.style.top
+  }));
 
-  canvas.toBlob(blob=>{
-    if(blob)download(blob,"cross-chart.png");
-  });
+  try{
+    markers.forEach(marker=>{
+      const rect=marker.getBoundingClientRect();
+      const parent=marker.parentElement.getBoundingClientRect();
+
+      marker.style.transform="none";
+      marker.style.left=(rect.left-parent.left)+"px";
+      marker.style.top=(rect.top-parent.top)+"px";
+    });
+
+    const canvas=await window.html2canvas(node,{
+      backgroundColor:"#f4f5f8",
+      scale:2,
+      useCORS:true
+    });
+
+    canvas.toBlob(blob=>{
+      if(blob)download(blob,"cross-chart.png");
+    });
+  }finally{
+    markers.forEach((marker,i)=>{
+      marker.style.transform=originalStyles[i].transform;
+      marker.style.left=originalStyles[i].left;
+      marker.style.top=originalStyles[i].top;
+    });
+  }
 };
 </script>
 </body></html>
