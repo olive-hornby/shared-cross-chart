@@ -334,6 +334,45 @@ $("charts").addEventListener("pointercancel",()=>{
 });$("exportJson").onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});download(blob,"cross-chart-backup.json")};
 $("importJson").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const obj=JSON.parse(await f.text());if(!Array.isArray(obj.charts)||!Array.isArray(obj.icons))throw 0;if(confirm("現在の盤面を読み込んだデータで置き換えますか？"))mutate(()=>{state=obj;activeChart=state.charts[0]?.id})}catch{alert("読み込めないJSONファイルです")}e.target.value=""};
 function download(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href)}
-$("exportPng").onclick=async()=>{if(!window.html2canvas){await new Promise((res,rej)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";s.onload=res;s.onerror=rej;document.head.append(s)})}const node=$("charts");const canvas=await window.html2canvas(node,{backgroundColor:"#f4f5f8",scale:2});canvas.toBlob(blob=>download(blob,"cross-chart.png"))};
+$("exportPng").onclick=async()=>{
+  if(!window.html2canvas){
+    await new Promise((res,rej)=>{
+      const s=document.createElement("script");
+      s.src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+      s.onload=res;
+      s.onerror=rej;
+      document.head.append(s);
+    });
+  }
+
+  const node=$("charts");
+
+  // 画像の読み込み完了を待つ
+  const images=Array.from(node.querySelectorAll("img"));
+  await Promise.all(images.map(img=>{
+    if(img.complete && img.naturalWidth>0){
+      return img.decode ? img.decode().catch(()=>{}) : Promise.resolve();
+    }
+    return new Promise(resolve=>{
+      img.onload=resolve;
+      img.onerror=resolve;
+    });
+  }));
+
+  // フォントの読み込みも待つ
+  if(document.fonts && document.fonts.ready){
+    await document.fonts.ready;
+  }
+
+  const canvas=await window.html2canvas(node,{
+    backgroundColor:"#f4f5f8",
+    scale:2,
+    useCORS:true
+  });
+
+  canvas.toBlob(blob=>{
+    if(blob)download(blob,"cross-chart.png");
+  });
+};
 </script>
 </body></html>
