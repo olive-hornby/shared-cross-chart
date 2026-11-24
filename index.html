@@ -134,8 +134,7 @@ function modal(title,body,onSave){
  $("saveModal").onclick=()=>{onSave();$("modalRoot").innerHTML="";};
 }
 function axisEditor(id){const c=state.charts.find(x=>x.id===id);modal("軸ラベルを編集",`<div class="field"><label>上</label><input id="aTop" value="${esc(c.top)}"></div><div class="field"><label>下</label><input id="aBottom" value="${esc(c.bottom)}"></div><div class="field"><label>左</label><input id="aLeft" value="${esc(c.left)}"></div><div class="field"><label>右</label><input id="aRight" value="${esc(c.right)}"></div>`,()=>mutate(()=>{c.top=$("aTop").value;c.bottom=$("aBottom").value;c.left=$("aLeft").value;c.right=$("aRight").value}))}
-function editSelected(){
-  
+ 
 function editSelected(){
   const found=findMarker(selectedMarker);
   if(!found)return;
