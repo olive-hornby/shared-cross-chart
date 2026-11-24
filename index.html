@@ -278,28 +278,6 @@ async function join(){
 
     renderChat();
   });
-   async function sendChat(){
-  const name=$("chatName").value.trim()||"名無し";
-  const input=$("chatInput");
-  const text=input.value.trim();
-
-  if(!text||!chatRef)return;
-
-  try{
-    await push(chatRef,{
-      name:name,
-      text:text,
-      type:"text",
-      timestamp:Date.now()
-    });
-
-    input.value="";
-  }catch(e){
-    alert("メッセージを送信できませんでした。");
-    console.error(e);
-  }
-}
-
   const url=new URL(location.href);
   url.searchParams.set("room",room);
   history.replaceState({}, "", url);
@@ -325,6 +303,28 @@ async function join(){
   $("gateError").textContent="接続できませんでした。Firebase設定・匿名認証・データベースルールを確認してください。";
   console.error(e);
  }
+}
+
+  async function sendChat(){
+  const name=$("chatName").value.trim()||"名無し";
+  const input=$("chatInput");
+  const text=input.value.trim();
+
+  if(!text||!chatRef)return;
+
+  try{
+    await push(chatRef,{
+      name:name,
+      text:text,
+      type:"text",
+      timestamp:Date.now()
+    });
+
+    input.value="";
+  }catch(e){
+    alert("メッセージを送信できませんでした。");
+    console.error(e);
+  }
 }
   function renderChat(){
   const area=$("chatMessages");
