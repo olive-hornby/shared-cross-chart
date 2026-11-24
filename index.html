@@ -56,7 +56,7 @@ h1{font-size:18px;margin:0}header .spacer{flex:1}.status{font-size:12px;color:va
 <section>
 <h3>選択中のアイコン・駒</h3>
 <div id="selectionInfo" class="small">アイコンを選択してください。</div>
-<button id="editMarker" disabled>名前・コメントを編集</button>
+<button id="editMarker" disabled>アイコン名・コメントを編集</button>
 <button id="deleteMarker" class="danger" disabled>盤面から削除</button>
 <button id="deleteIcon" class="danger" disabled>アイコン一覧から削除</button>
 </section>
@@ -100,7 +100,20 @@ function render(){
     <div class="board" data-board="${c.id}">
       <div class="axis x"></div><div class="axis y"></div>
       <div class="axis-label top">${esc(c.top)}</div><div class="axis-label bottom">${esc(c.bottom)}</div><div class="axis-label left">${esc(c.left)}</div><div class="axis-label right">${esc(c.right)}</div>
-      ${c.markers.map(m=>{let ic=state.icons.find(i=>i.id===m.iconId)||{};return `<div class="marker ${selectedMarker===m.id?"selected":""}" data-marker="${m.id}" data-chart="${c.id}" style="left:${m.x*100}%;top:${m.y*100}%;background:${ic.color||colors[0]}">${ic.image?`<img draggable="false" src="${ic.image}">`:`<span class="initial">${esc(ic.initial||ic.name?.slice(0,1)||"？")}</span>`}<span class="marker-name">${esc(m.name||ic.name||"")}</span></div>`}).join("")}
+      ${c.markers.map(m=>{
+  let ic=state.icons.find(i=>i.id===m.iconId)||{};
+  const tooltip=(ic.name||"")+(m.comment?"\n"+m.comment:"");
+  return `<div class="marker ${selectedMarker===m.id?"selected":""}"
+    data-marker="${m.id}" data-chart="${c.id}"
+    title="${esc(tooltip)}"
+    style="left:${m.x*100}%;top:${m.y*100}%;background:${ic.color||colors[0]}">
+    ${ic.image
+      ? `<img draggable="false" src="${ic.image}">`
+      : `<span class="initial">${esc(ic.initial||ic.name?.slice(0,1)||"？")}</span>`
+    }
+    <span class="marker-name">${esc(ic.name||"")}</span>
+  </div>`
+}).join("")}
     </div></article>`).join("");
   $("selectionInfo").textContent=selectedMarker?findMarker(selectedMarker)?.marker.comment||"選択中。名前・コメントを編集できます。":"アイコンを選択してください。";
   $("editMarker").disabled=!selectedMarker;
@@ -121,7 +134,28 @@ function modal(title,body,onSave){
  $("saveModal").onclick=()=>{onSave();$("modalRoot").innerHTML="";};
 }
 function axisEditor(id){const c=state.charts.find(x=>x.id===id);modal("軸ラベルを編集",`<div class="field"><label>上</label><input id="aTop" value="${esc(c.top)}"></div><div class="field"><label>下</label><input id="aBottom" value="${esc(c.bottom)}"></div><div class="field"><label>左</label><input id="aLeft" value="${esc(c.left)}"></div><div class="field"><label>右</label><input id="aRight" value="${esc(c.right)}"></div>`,()=>mutate(()=>{c.top=$("aTop").value;c.bottom=$("aBottom").value;c.left=$("aLeft").value;c.right=$("aRight").value}))}
-function editSelected(){const found=findMarker(selectedMarker);if(!found)return;const m=found.marker;modal("アイコンの情報",`<div class="field"><label>表示名</label><input id="mName" value="${esc(m.name||"")}"></div><div class="field"><label>コメント</label><textarea id="mComment">${esc(m.comment||"")}</textarea></div>`,()=>mutate(()=>{m.name=$("mName").value;m.comment=$("mComment").value}))}
+function editSelected(){
+  const found=findMarker(selectedMarker);
+  if(!found)return;
+
+  const m=found.marker;
+  const icon=state.icons.find(i=>i.id===m.iconId);
+  if(!icon)return;
+
+  modal("アイコン名・コメントの編集",`
+    <div class="field">
+      <label>アイコン名（すべてのチャートで共通）</label>
+      <input id="mName" value="${esc(icon.name||"")}">
+    </div>
+    <div class="field">
+      <label>この駒のコメント</label>
+      <textarea id="mComment">${esc(m.comment||"")}</textarea>
+    </div>
+  `,()=>mutate(()=>{
+    icon.name=$("mName").value;
+    m.comment=$("mComment").value;
+  }));
+}
 async function join(){
  const room=$("roomId").value.trim(), password=$("roomPassword").value;
  if(!room||!password){$("gateError").textContent="ルームIDとパスワードを入力してください。";return}
