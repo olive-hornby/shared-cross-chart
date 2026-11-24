@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>共有十字チャート</title>
+<style>
+:root{--bg:#f4f5f8;--panel:#fff;--ink:#202532;--muted:#697386;--line:#dce1e9;--accent:#536dfe;--danger:#c43b52}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,textarea,select{font:inherit}button{border:0;border-radius:9px;padding:9px 13px;background:#e9ecf5;color:var(--ink);cursor:pointer}button.primary{background:var(--accent);color:white}button.danger{background:#fff0f1;color:var(--danger)}button:disabled{opacity:.45;cursor:not-allowed}
+header{background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:5}
+h1{font-size:18px;margin:0}header .spacer{flex:1}.status{font-size:12px;color:var(--muted)}main{max-width:1440px;margin:20px auto;padding:0 16px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 2px 8px #1b2a4410}
+#gate{max-width:480px;margin:8vh auto}#gate h2{margin-top:0}.field{display:grid;gap:5px;margin:12px 0}.field label{font-size:13px;color:var(--muted)}input,textarea,select{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;background:white;color:var(--ink)}textarea{min-height:76px;resize:vertical}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}.toolbar .spacer{flex:1}
+#workspace{display:grid;grid-template-columns:260px minmax(0,1fr);gap:14px}.sidebar{align-self:start;position:sticky;top:78px}.sidebar h3{font-size:14px;margin:0 0 10px}.sidebar section+section{border-top:1px solid var(--line);margin-top:15px;padding-top:15px}
+.chart-list{display:grid;gap:6px}.chart-list button{text-align:left;background:#f5f6fa}.chart-list button.active{background:#e8ebff;color:#3348c7}
+#charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:14px;align-content:start}.chart-card{background:white;border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}.chart-card.focus{grid-column:1/-1}.chart-head{display:flex;gap:8px;align-items:center;margin-bottom:8px}.chart-head input{font-weight:650;max-width:230px}.chart-head .spacer{flex:1}
+.board{position:relative;width:100%;aspect-ratio:1.2/1;background:#fff;border:1px solid #d9deea;border-radius:8px;overflow:hidden;touch-action:pan-y}
+.axis{position:absolute;background:#9aa4b5;pointer-events:none}.axis.x{height:1px;width:100%;top:50%;left:0}.axis.y{width:1px;height:100%;left:50%;top:0}
+.axis-label{position:absolute;font-size:12px;color:#657087;background:#ffffffd9;padding:2px 5px;border-radius:4px;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;pointer-events:none}.axis-label.top{top:5px;left:50%;transform:translateX(-50%)}.axis-label.bottom{bottom:5px;left:50%;transform:translateX(-50%)}.axis-label.left{left:5px;top:50%;transform:translateY(-50%)}.axis-label.right{right:5px;top:50%;transform:translateY(-50%)}
+.marker{position:absolute;width:54px;height:54px;transform:translate(-50%,-50%);border:2px solid white;border-radius:50%;box-shadow:0 2px 8px #17203355;cursor:grab;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#dce4ff;color:#29365e;font-weight:700;user-select:none;touch-action:none}
+.marker img{width:100%;height:100%;object-fit:cover}.marker .initial{font-size:18px}.marker.selected{outline:3px solid var(--accent);outline-offset:2px}.marker-name{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:2px;white-space:nowrap;font-size:10px;color:#344054;background:#fffE;padding:1px 4px;border-radius:4px;pointer-events:none;max-width:90px;overflow:hidden;text-overflow:ellipsis}
+.iconbank{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}.bank-icon{width:42px;height:42px;border-radius:50%;padding:0;overflow:hidden;border:2px solid white;box-shadow:0 1px 4px #0002;font-weight:700}.bank-icon img{width:100%;height:100%;object-fit:cover}
+.small{font-size:12px;color:var(--muted)}.hidden{display:none!important}.row{display:flex;gap:8px;align-items:center}.row>*{min-width:0}.modal-back{position:fixed;inset:0;background:#17203366;display:grid;place-items:center;padding:16px;z-index:10}.modal{width:min(100%,480px);max-height:90vh;overflow:auto;background:white;border-radius:14px;padding:18px;box-shadow:0 15px 60px #0003}.modal h3{margin-top:0}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+@media(max-width:760px){#workspace{grid-template-columns:1fr}.sidebar{position:static}.sidebar-inner{display:grid;grid-template-columns:1fr 1fr;gap:12px}.sidebar section+section{border:0;margin:0;padding:0}.chart-head input{max-width:150px}.marker{width:46px;height:46px}}
+</style>
+</head>
+<body>
+<header><h1>✣ 共有十字チャート</h1><span id="roomLabel" class="status">未接続</span><span class="spacer"></span><span id="syncStatus" class="status">オフライン</span><button id="copyLink">共有URLをコピー</button></header>
+<main>
+<div id="setup" class="panel">
+<h2>Firebase接続設定</h2>
+<p>このアプリを使うには、Firebaseプロジェクトの設定が必要です。<code>app.js</code>ではなく、このHTML内の <code>firebaseConfig</code> を編集してください。</p>
+<p class="small">設定手順は同梱の README.md にあります。Firebase未設定でもデモモードで操作を試せます（他の人とは同期されません）。</p>
+<button class="primary" id="demoBtn">デモモードで試す</button>
+</div>
+<div id="gate" class="panel hidden">
+<h2>ルームに参加</h2><p class="small">同じルームIDとパスワードを知っているメンバーで盤面を共有します。</p>
+<div class="field"><label>ルームID</label><input id="roomId" placeholder="例：session-2026"></div>
+<div class="field"><label>共通パスワード</label><input id="roomPassword" type="password" placeholder="ルームのパスワード"></div>
+<div id="gateError" class="small"></div><button class="primary" id="joinBtn">参加する</button>
+</div>
+<div id="app" class="hidden">
+<div class="toolbar">
+<button class="primary" id="addChart">＋ チャート追加</button>
+<button id="layoutToggle">表示：複数</button>
+<button id="exportPng">PNG書き出し</button>
+<button id="exportJson">データ書き出し</button>
+<label class="row small">データ読込 <input type="file" id="importJson" accept="application/json" style="max-width:190px"></label>
+<span class="spacer"></span><span class="small">アイコンを選んでから盤面をクリック、またはドラッグして移動</span>
+</div>
+<div id="workspace">
+<aside class="panel sidebar"><div class="sidebar-inner">
+<section><h3>チャート一覧</h3><div id="chartList" class="chart-list"></div></section>
+<section><h3>アイコン一覧</h3><div class="row"><button id="addPreset">＋ プリセット</button><button id="uploadIcon">画像追加</button><input type="file" id="iconFile" accept="image/*" class="hidden"></div><div id="iconBank" class="iconbank"></div><p class="small">アイコンを選択後、盤面をクリックすると配置できます。</p></section>
+<section><h3>選択中のアイコン</h3><div id="selectionInfo" class="small">アイコンを選択してください。</div><button id="editMarker" disabled>名前・コメントを編集</button><button id="deleteMarker" class="danger" disabled>盤面から削除</button></section>
+</div></aside>
+<section id="charts"></section>
+</div>
+</div>
+</main>
+<div id="modalRoot"></div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+
+// Firebase Console > Project settings > Your apps で取得した値に置き換える
+const firebaseConfig = {
+  apiKey: "AIzaSyBIK8mbTxhdOT0yFNzqvMs9pmSq8xY-VBs",
+  authDomain: "uchiyoso-fukabori-crosschart.firebaseapp.com",
+  databaseURL: "https://uchiyoso-fukabori-crosschart-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "uchiyoso-fukabori-crosschart",
+  storageBucket: "uchiyoso-fukabori-crosschart.firebasestorage.app",
+  messagingSenderId: "483290801051",
+  appId: "1:483290801051:web:1bf699748ff1a61c7bf73e"
+};
+const $ = id => document.getElementById(id);
+const defaultState = () => ({charts:[{id:uid(),title:"チャート 1",top:"好き",bottom:"嫌い",left:"苦手",right:"得意",markers:[]}],icons:[]});
+function uid(){return Math.random().toString(36).slice(2,10)+Date.now().toString(36)}
+let state=defaultState(), selectedIcon=null, selectedMarker=null, activeChart=null, layout="multi", dbRef=null, unsubscribe=null, demo=false, applyingRemote=false, saveTimer=null;
+const colors=["#dce8ff","#f9dfdf","#dff2e4","#fff0cf","#eee2ff","#d9f2f1"];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function validConfig(){return firebaseConfig.apiKey!=="YOUR_API_KEY" && (firebaseConfig.databaseURL.includes("firebaseio.com") || firebaseConfig.databaseURL.includes(".firebasedatabase.app"))}
+function show(id){$(id).classList.remove("hidden")} function hide(id){$(id).classList.add("hidden")}
+function render(){
+  $("roomLabel").textContent=demo?"デモルーム":("ルーム："+(new URLSearchParams(location.search).get("room")||""));
+  $("chartList").innerHTML=state.charts.map(c=>`<button data-chart="${c.id}" class="${c.id===activeChart?"active":""}">${esc(c.title||"無題チャート")}</button>`).join("");
+  $("iconBank").innerHTML=state.icons.map(i=>`<button class="bank-icon" data-icon="${i.id}" title="${esc(i.name)}" style="background:${i.color||colors[0]}">${i.image?`<img src="${i.image}">`:`${esc(i.initial||i.name?.slice(0,1)||"？")}`}</button>`).join("");
+  const visible=layout==="single"?(state.charts.filter(c=>c.id===activeChart)):state.charts;
+  $("charts").innerHTML=visible.map(c=>`<article class="chart-card ${layout==="single"?"focus":""}" data-card="${c.id}">
+    <div class="chart-head"><input data-title="${c.id}" value="${esc(c.title)}" aria-label="チャート名"><span class="spacer"></span><button data-axis="${c.id}">軸ラベル</button><button class="danger" data-remove="${c.id}">削除</button></div>
+    <div class="board" data-board="${c.id}">
+      <div class="axis x"></div><div class="axis y"></div>
+      <div class="axis-label top">${esc(c.top)}</div><div class="axis-label bottom">${esc(c.bottom)}</div><div class="axis-label left">${esc(c.left)}</div><div class="axis-label right">${esc(c.right)}</div>
+      ${c.markers.map(m=>{let ic=state.icons.find(i=>i.id===m.iconId)||{};return `<div class="marker ${selectedMarker===m.id?"selected":""}" data-marker="${m.id}" data-chart="${c.id}" style="left:${m.x*100}%;top:${m.y*100}%;background:${ic.color||colors[0]}">${ic.image?`<img draggable="false" src="${ic.image}">`:`<span class="initial">${esc(ic.initial||ic.name?.slice(0,1)||"？")}</span>`}<span class="marker-name">${esc(m.name||ic.name||"")}</span></div>`}).join("")}
+    </div></article>`).join("");
+  $("selectionInfo").textContent=selectedMarker?findMarker(selectedMarker)?.marker.comment||"選択中。名前・コメントを編集できます。":"アイコンを選択してください。";
+  $("editMarker").disabled=!selectedMarker;$("deleteMarker").disabled=!selectedMarker;
+  $("layoutToggle").textContent=layout==="multi"?"表示：複数":"表示：1つ";
+}
+function findMarker(id){for(const c of state.charts){const marker=c.markers.find(m=>m.id===id);if(marker)return {chart:c,marker}}return null}
+function persist(){
+ if(demo||!dbRef||applyingRemote)return;
+ clearTimeout(saveTimer);saveTimer=setTimeout(()=>set(dbRef,state).catch(e=>{$("syncStatus").textContent="保存エラー";console.error(e)}),180);
+}
+function mutate(fn){fn();render();persist()}
+function addIcon(icon){state.icons.push(icon);selectedIcon=icon.id;render();persist()}
+function modal(title,body,onSave){
+ $("modalRoot").innerHTML=`<div class="modal-back"><div class="modal"><h3>${title}</h3>${body}<div class="modal-actions"><button id="cancelModal">キャンセル</button><button class="primary" id="saveModal">保存</button></div></div></div>`;
+ $("cancelModal").onclick=()=>$("modalRoot").innerHTML="";
+ $("saveModal").onclick=()=>{onSave();$("modalRoot").innerHTML="";};
+}
+function axisEditor(id){const c=state.charts.find(x=>x.id===id);modal("軸ラベルを編集",`<div class="field"><label>上</label><input id="aTop" value="${esc(c.top)}"></div><div class="field"><label>下</label><input id="aBottom" value="${esc(c.bottom)}"></div><div class="field"><label>左</label><input id="aLeft" value="${esc(c.left)}"></div><div class="field"><label>右</label><input id="aRight" value="${esc(c.right)}"></div>`,()=>mutate(()=>{c.top=$("aTop").value;c.bottom=$("aBottom").value;c.left=$("aLeft").value;c.right=$("aRight").value}))}
+function editSelected(){const found=findMarker(selectedMarker);if(!found)return;const m=found.marker;modal("アイコンの情報",`<div class="field"><label>表示名</label><input id="mName" value="${esc(m.name||"")}"></div><div class="field"><label>コメント</label><textarea id="mComment">${esc(m.comment||"")}</textarea></div>`,()=>mutate(()=>{m.name=$("mName").value;m.comment=$("mComment").value}))}
+async function join(){
+ const room=$("roomId").value.trim(), password=$("roomPassword").value;
+ if(!room||!password){$("gateError").textContent="ルームIDとパスワードを入力してください。";return}
+ $("gateError").textContent="接続中…";
+ try{
+  const app=initializeApp(firebaseConfig),auth=getAuth(app);await signInAnonymously(auth);
+  const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(room+":"+password));
+  const hash=[...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,"0")).join("");
+  const database=getDatabase(app);dbRef=ref(database,"rooms/"+hash);
+  const url=new URL(location.href);url.searchParams.set("room",room);history.replaceState({}, "", url);
+  unsubscribe=onValue(dbRef,snap=>{applyingRemote=true;state=snap.exists()?snap.val():defaultState();if(!state.charts)state=defaultState();if(!activeChart)activeChart=state.charts[0]?.id;render();applyingRemote=false;$("syncStatus").textContent="● 同期中";});
+  hide("gate");show("app");$("syncStatus").textContent="接続済み";
+ }catch(e){$("gateError").textContent="接続できませんでした。Firebase設定・匿名認証・データベースルールを確認してください。";console.error(e)}
+}
+function startDemo(){demo=true;hide("setup");hide("gate");show("app");activeChart=state.charts[0].id;$("syncStatus").textContent="デモモード（同期なし）";render()}
+$("demoBtn").onclick=startDemo;
+if(validConfig()){hide("setup");show("gate");const r=new URLSearchParams(location.search).get("room");if(r)$("roomId").value=r;}else{show("setup")}
+$("joinBtn").onclick=join;
+$("copyLink").onclick=async()=>{await navigator.clipboard.writeText(location.href);$("syncStatus").textContent="URLをコピーしました"};
+$("addChart").onclick=()=>mutate(()=>{const c={id:uid(),title:"チャート "+(state.charts.length+1),top:"好き",bottom:"嫌い",left:"苦手",right:"得意",markers:[]};state.charts.push(c);activeChart=c.id});
+$("layoutToggle").onclick=()=>{layout=layout==="multi"?"single":"multi";render()};
+$("addPreset").onclick=()=>{const name=prompt("アイコンの名前（例：探索者A）","新しいアイコン");if(name)addIcon({id:uid(),name,initial:name.slice(0,1),color:colors[state.icons.length%colors.length]})};
+$("uploadIcon").onclick=()=>$("iconFile").click();
+$("iconFile").onchange=async e=>{const file=e.target.files[0];if(!file)return;if(file.size>450000){alert("画像は450KB以下にしてください。");return}const data=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)});addIcon({id:uid(),name:file.name.replace(/\.[^.]+$/,""),image:data,color:colors[state.icons.length%colors.length]});e.target.value=""};
+$("editMarker").onclick=editSelected;
+$("deleteMarker").onclick=()=>{const f=findMarker(selectedMarker);if(!f)return;mutate(()=>{f.chart.markers=f.chart.markers.filter(m=>m.id!==selectedMarker);selectedMarker=null})};
+$("charts").addEventListener("click",e=>{
+ const axis=e.target.closest("[data-axis]");if(axis){axisEditor(axis.dataset.axis);return}
+ const rm=e.target.closest("[data-remove]");if(rm){if(confirm("このチャートを削除しますか？"))mutate(()=>{state.charts=state.charts.filter(c=>c.id!==rm.dataset.remove);activeChart=state.charts[0]?.id||null});return}
+ const marker=e.target.closest("[data-marker]");if(marker){selectedMarker=marker.dataset.marker;render();return}
+ const board=e.target.closest("[data-board]");if(board&&selectedIcon){const rect=board.getBoundingClientRect();const x=Math.max(.04,Math.min(.96,(e.clientX-rect.left)/rect.width)),y=Math.max(.07,Math.min(.93,(e.clientY-rect.top)/rect.height));mutate(()=>{const c=state.charts.find(c=>c.id===board.dataset.board);c.markers.push({id:uid(),iconId:selectedIcon,x,y,name:"",comment:""});selectedMarker=c.markers.at(-1).id})}
+});
+$("charts").addEventListener("change",e=>{const title=e.target.closest("[data-title]");if(title)mutate(()=>{const c=state.charts.find(c=>c.id===title.dataset.title);if(c)c.title=title.value})});
+$("chartList").onclick=e=>{const b=e.target.closest("[data-chart]");if(b){activeChart=b.dataset.chart;if(layout==="multi")layout="single";render()}};
+$("iconBank").onclick=e=>{const b=e.target.closest("[data-icon]");if(b){selectedIcon=b.dataset.icon;render();$("selectionInfo").textContent="配置するアイコン："+(state.icons.find(i=>i.id===selectedIcon)?.name||"")}};
+let drag=null;
+$("charts").addEventListener("pointerdown",e=>{const el=e.target.closest("[data-marker]");if(!el)return;const f=findMarker(el.dataset.marker);if(!f)return;selectedMarker=f.marker.id;drag={id:f.marker.id,chartId:f.chart.id,board:el.closest("[data-board]"),pointer:e.pointerId};el.setPointerCapture(e.pointerId);e.preventDefault()});
+$("charts").addEventListener("pointermove",e=>{if(!drag)return;const rect=drag.board.getBoundingClientRect(),f=findMarker(drag.id);if(!f)return;f.marker.x=Math.max(.03,Math.min(.97,(e.clientX-rect.left)/rect.width));f.marker.y=Math.max(.05,Math.min(.95,(e.clientY-rect.top)/rect.height));const el=drag.board.querySelector(`[data-marker="${drag.id}"]`);if(el){el.style.left=f.marker.x*100+"%";el.style.top=f.marker.y*100+"%"}});
+$("charts").addEventListener("pointerup",()=>{if(drag){drag=null;render();persist()}});
+$("exportJson").onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});download(blob,"cross-chart-backup.json")};
+$("importJson").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const obj=JSON.parse(await f.text());if(!Array.isArray(obj.charts)||!Array.isArray(obj.icons))throw 0;if(confirm("現在の盤面を読み込んだデータで置き換えますか？"))mutate(()=>{state=obj;activeChart=state.charts[0]?.id})}catch{alert("読み込めないJSONファイルです")}e.target.value=""};
+function download(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href)}
+$("exportPng").onclick=async()=>{if(!window.html2canvas){await new Promise((res,rej)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";s.onload=res;s.onerror=rej;document.head.append(s)})}const node=$("charts");const canvas=await window.html2canvas(node,{backgroundColor:"#f4f5f8",scale:2});canvas.toBlob(blob=>download(blob,"cross-chart.png"))};
+</script>
+</body></html>
