@@ -167,6 +167,7 @@ async function join(){
   const database=getDatabase(app);dbRef=ref(database,"rooms/"+hash);
   const url=new URL(location.href);url.searchParams.set("room",room);history.replaceState({}, "", url);
   unsubscribe=onValue(dbRef,snap=>{applyingRemote=true;state=snap.exists()?snap.val():defaultState();if(!Array.isArray(state.charts))state=defaultState();
+if(!Array.isArray(state.icons))state.icons=[];
 state.charts.forEach(c=>{if(!Array.isArray(c.markers))c.markers=[];});if(!activeChart)activeChart=state.charts[0]?.id;render();applyingRemote=false;$("syncStatus").textContent="● 同期中";});
   hide("gate");show("app");$("syncStatus").textContent="接続済み";
  }catch(e){$("gateError").textContent="接続できませんでした。Firebase設定・匿名認証・データベースルールを確認してください。";console.error(e)}
