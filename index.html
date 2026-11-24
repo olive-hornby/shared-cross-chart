@@ -173,6 +173,7 @@ const $ = id => document.getElementById(id);
 const defaultState = () => ({charts:[{id:uid(),title:"チャート 1",top:"好き",bottom:"嫌い",left:"苦手",right:"得意",markers:[]}],icons:[]});
 function uid(){return Math.random().toString(36).slice(2,10)+Date.now().toString(36)}
 let state=defaultState(), selectedIcon=null, selectedMarker=null, activeChart=null, layout="multi", dbRef=null, unsubscribe=null, demo=false, applyingRemote=false, saveTimer=null;
+let chatRef=null, chatUnsubscribe=null, chatItems=[];
 const colors=["#dce8ff","#f9dfdf","#dff2e4","#fff0cf","#eee2ff","#d9f2f1"];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function validConfig(){return firebaseConfig.apiKey!=="YOUR_API_KEY" && (firebaseConfig.databaseURL.includes("firebaseio.com") || firebaseConfig.databaseURL.includes(".firebasedatabase.app"))}
@@ -253,13 +254,104 @@ async function join(){
   const app=initializeApp(firebaseConfig),auth=getAuth(app);await signInAnonymously(auth);
   const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(room+":"+password));
   const hash=[...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,"0")).join("");
-  const database=getDatabase(app);dbRef=ref(database,"rooms/"+hash);
-  const url=new URL(location.href);url.searchParams.set("room",room);history.replaceState({}, "", url);
-  unsubscribe=onValue(dbRef,snap=>{applyingRemote=true;state=snap.exists()?snap.val():defaultState();if(!Array.isArray(state.charts))state=defaultState();
-if(!Array.isArray(state.icons))state.icons=[];
-state.charts.forEach(c=>{if(!Array.isArray(c.markers))c.markers=[];});if(!activeChart)activeChart=state.charts[0]?.id;render();applyingRemote=false;$("syncStatus").textContent="● 同期中";});
-  hide("gate");show("app");$("syncStatus").textContent="接続済み";
- }catch(e){$("gateError").textContent="接続できませんでした。Firebase設定・匿名認証・データベースルールを確認してください。";console.error(e)}
+  const database=getDatabase(app);
+
+  // 盤面の接続
+  dbRef=ref(database,"rooms/"+hash);
+
+  // チャットの接続
+  chatRef=ref(database,"roomChats/"+hash);
+  if(chatUnsubscribe)chatUnsubscribe();
+  chatItems=[];
+
+  const recentChats=query(chatRef,limitToLast(100));
+
+  chatUnsubscribe=onChildAdded(recentChats,snap=>{
+    chatItems.push({
+      id:snap.key,
+      ...snap.val()
+    });
+
+    if(chatItems.length>100){
+      chatItems.shift();
+    }
+
+    renderChat();
+  });
+   async function sendChat(){
+  const name=$("chatName").value.trim()||"名無し";
+  const input=$("chatInput");
+  const text=input.value.trim();
+
+  if(!text||!chatRef)return;
+
+  try{
+    await push(chatRef,{
+      name:name,
+      text:text,
+      type:"text",
+      timestamp:Date.now()
+    });
+
+    input.value="";
+  }catch(e){
+    alert("メッセージを送信できませんでした。");
+    console.error(e);
+  }
+}
+
+  const url=new URL(location.href);
+  url.searchParams.set("room",room);
+  history.replaceState({}, "", url);
+
+  // 盤面の受信
+  unsubscribe=onValue(dbRef,snap=>{
+    applyingRemote=true;
+    state=snap.exists()?snap.val():defaultState();
+    if(!Array.isArray(state.charts))state=defaultState();
+    if(!Array.isArray(state.icons))state.icons=[];
+    state.charts.forEach(c=>{if(!Array.isArray(c.markers))c.markers=[];});
+    if(!activeChart)activeChart=state.charts[0]?.id;
+    render();
+    applyingRemote=false;
+    $("syncStatus").textContent="● 同期中";
+  });
+
+  hide("gate");
+  show("app");
+  $("syncStatus").textContent="接続済み";
+
+ }catch(e){
+  $("gateError").textContent="接続できませんでした。Firebase設定・匿名認証・データベースルールを確認してください。";
+  console.error(e);
+ }
+}
+  function renderChat(){
+  const area=$("chatMessages");
+  area.replaceChildren();
+
+  chatItems.forEach(item=>{
+    const message=document.createElement("div");
+    message.className="chat-message";
+
+    const meta=document.createElement("div");
+    meta.className="chat-meta";
+
+    const time=item.timestamp
+      ?new Date(item.timestamp).toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"})
+      :"時刻不明";
+
+    meta.textContent=(item.name||"名無し")+" ・ "+time;
+
+    const body=document.createElement("div");
+    body.className="chat-body";
+    body.textContent=item.text||"";
+
+    message.append(meta,body);
+    area.append(message);
+  });
+
+  area.scrollTop=area.scrollHeight;
 }
 function startDemo(){demo=true;hide("setup");hide("gate");show("app");activeChart=state.charts[0].id;$("syncStatus").textContent="デモモード（同期なし）";render()}
 $("demoBtn").onclick=startDemo;
@@ -391,7 +483,7 @@ $("charts").addEventListener("click",e=>{
     });
   }
 });
-
+$("sendChat").addEventListener("click",sendChat);
 $("charts").addEventListener("change",e=>{const title=e.target.closest("[data-title]");if(title)mutate(()=>{const c=state.charts.find(c=>c.id===title.dataset.title);if(c)c.title=title.value})});
 $("chartList").onclick=e=>{const b=e.target.closest("[data-chart]");if(b){activeChart=b.dataset.chart;if(layout==="multi")layout="single";render()}};
 $("iconBank").onclick=e=>{const b=e.target.closest("[data-icon]");if(b){selectedIcon=b.dataset.icon;render();$("selectionInfo").textContent="配置するアイコン："+(state.icons.find(i=>i.id===selectedIcon)?.name||"")}};
