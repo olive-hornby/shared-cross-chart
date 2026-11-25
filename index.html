@@ -589,7 +589,18 @@ function render(){
   $("iconBank").innerHTML=state.icons.map(i=>`<button class="bank-icon" data-icon="${i.id}" title="${esc(i.name)}" style="background:${i.color||colors[0]}">${i.image?`<img src="${i.image}">`:`${esc(i.initial||i.name?.slice(0,1)||"？")}`}</button>`).join("");
   const visible=layout==="single"?(state.charts.filter(c=>c.id===activeChart)):state.charts;
   $("charts").innerHTML=visible.map(c=>`<article class="chart-card ${layout==="single"?"focus":""}" data-card="${c.id}" style="background:${esc(c.bgColor||"#ffffff")}">
-    <div class="chart-head"><input data-title="${c.id}" value="${esc(c.title)}" aria-label="チャート名"><span class="spacer"></span><button data-color="${c.id}">背景色</button><button data-axis="${c.id}">軸ラベル</button><button class="danger" data-remove="${c.id}">削除</button></div>
+    <div class="chart-title-area">
+  <div class="chart-kicker">✦ CHART ✦</div>
+  <h2 class="chart-title">${esc(c.title||"無題チャート")}</h2>
+  <div class="chart-title-line"></div>
+</div>
+<div class="chart-head">
+  <button data-edit-title="${c.id}">タイトル編集</button>
+  <span class="spacer"></span>
+  <button data-color="${c.id}">背景色</button>
+  <button data-axis="${c.id}">軸ラベル</button>
+  <button class="danger" data-remove="${c.id}">削除</button>
+</div>
     <div class="board" data-board="${c.id}">
       <div class="axis x"></div><div class="axis y"></div>
       <div class="axis-label top">${esc(c.top)}</div><div class="axis-label bottom">${esc(c.bottom)}</div><div class="axis-label left">${esc(c.left)}</div><div class="axis-label right">${esc(c.right)}</div>
@@ -1043,6 +1054,24 @@ $("choiceButton").addEventListener("click",()=>{
 
 
 $("charts").addEventListener("change",e=>{const title=e.target.closest("[data-title]");if(title)mutate(()=>{const c=state.charts.find(c=>c.id===title.dataset.title);if(c)c.title=title.value})});
+$("charts").addEventListener("click",e=>{
+  const editTitle=e.target.closest("[data-edit-title]");
+  if(!editTitle)return;
+
+  const c=state.charts.find(c=>c.id===editTitle.dataset.editTitle);
+  if(!c)return;
+
+  const newTitle=prompt(
+    "チャートのタイトルを入力してください。",
+    c.title||""
+  );
+
+  if(newTitle===null)return;
+
+  mutate(()=>{
+    c.title=newTitle.trim()||"無題チャート";
+  });
+});
 $("chartList").onclick=e=>{const b=e.target.closest("[data-chart]");if(b){activeChart=b.dataset.chart;if(layout==="multi")layout="single";render()}};
 $("iconBank").onclick=e=>{const b=e.target.closest("[data-icon]");if(b){selectedIcon=b.dataset.icon;render();$("selectionInfo").textContent="配置するアイコン："+(state.icons.find(i=>i.id===selectedIcon)?.name||"")}};
 let drag=null;
