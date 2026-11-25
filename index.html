@@ -852,6 +852,16 @@ const firebaseConfig = {
 const $ = id => document.getElementById(id);
 const defaultState = () => ({charts:[{id:uid(),title:"チャート 1",top:"好き",bottom:"嫌い",left:"苦手",right:"得意",markers:[]}],icons:[]});
 function uid(){return Math.random().toString(36).slice(2,10)+Date.now().toString(36)}
+async function hashText(text){
+  const digest=await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(text)
+  );
+
+  return [...new Uint8Array(digest)]
+    .map(b=>b.toString(16).padStart(2,"0"))
+    .join("");
+}
 let state=defaultState(), selectedIcon=null, selectedMarker=null, activeChart=null, layout="multi", dbRef=null, unsubscribe=null, demo=false, applyingRemote=false, saveTimer=null;
 let chatRef=null, chatUnsubscribe=null, chatItems=[];
 let questionRef=null, questionUnsubscribe=null, questionData=null;
