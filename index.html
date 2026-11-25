@@ -848,6 +848,7 @@ const defaultState = () => ({charts:[{id:uid(),title:"チャート 1",top:"好�
 function uid(){return Math.random().toString(36).slice(2,10)+Date.now().toString(36)}
 let state=defaultState(), selectedIcon=null, selectedMarker=null, activeChart=null, layout="multi", dbRef=null, unsubscribe=null, demo=false, applyingRemote=false, saveTimer=null;
 let chatRef=null, chatUnsubscribe=null, chatItems=[];
+  let answerIconId=null;
 let questionRef=null, questionUnsubscribe=null, questionData=null;
 const colors=["#dce8ff","#f9dfdf","#dff2e4","#fff0cf","#eee2ff","#d9f2f1"];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -1006,23 +1007,89 @@ async function drawNextQuestion(){
   await set(questionRef,nextData);
 }
   // 質問ルームの表示
+// 質問ルームの表示
 function renderQuestionRoom(){
   const data=questionData||{};
   const current=data.currentQuestion;
+  const finished=current?.finished===true;
 
   $("questionText").textContent=
-    current?.text||"まだ質問はありません。";
+    finished
+      ?"用意された質問は出題し終わりました。"
+      :current?.text||"まだ質問はありません。";
 
+  // 終了時は質問を引くボタンを隠す
+  $("drawQuestion").classList.toggle("hidden",finished);
+
+  // 終了時は質問追加ボタンを表示
+  $("addQuestion").classList.toggle("hidden",!finished);
+
+    // 回答入力エリア
+  if(current&&!finished){
+    const icons=Array.isArray(state.icons)?state.icons:[];
+
+    $("answerArea").innerHTML=`
+      <div style="border-top:1px solid #ddd; padding-top:16px;">
+        <h3>この質問に回答する</h3>
+
+        <label>回答するキャラクター</label>
+        <div id="answerIconList" class="iconbank">
+          ${icons.map(icon=>`
+            <button type="button"
+              class="bank-icon"
+              data-answer-icon="${esc(icon.id)}"
+              title="${esc(icon.name)}"
+              style="background:${icon.color||colors[0]}">
+              ${icon.image
+                ?`<img src="${icon.image}">`
+                :esc(icon.initial||icon.name?.slice(0,1)||"？")}
+            </button>
+          `).join("")}
+        </div>
+
+        <textarea id="answerText" rows="3"
+          placeholder="回答を入力してください。"
+          style="width:100%; margin-top:12px;"></textarea>
+
+        <button id="submitAnswer" class="primary" style="margin-top:8px;">
+          回答する
+        </button>
+      </div>
+    `;
+  }else{
+    $("answerArea").innerHTML="";
+  }
   const history=Array.isArray(data.history)?data.history:[];
 
-  $("questionHistory").innerHTML=
+    $("questionHistory").innerHTML=
     history.length
-      ? history.slice().reverse().map(item=>`
-          <div style="padding:10px; border-bottom:1px solid #ddd;">
+      ?history.slice().reverse().map(item=>`
+          <div style="padding:14px; border-bottom:1px solid #ddd;">
             <strong>${esc(item.question||"")}</strong>
+
+            <div style="margin-top:10px;">
+              ${(item.answers||[]).map(answer=>{
+                const icon=state.icons.find(i=>i.id===answer.iconId);
+
+                return `
+                  <div style="display:flex; align-items:flex-start; gap:10px; margin:10px 0;">
+                    <div style="width:40px; height:40px; flex-shrink:0; border-radius:50%; overflow:hidden; background:${icon?.color||colors[0]}; display:flex; align-items:center; justify-content:center;">
+                      ${icon?.image
+                        ?`<img src="${icon.image}" style="width:100%;height:100%;object-fit:cover;">`
+                        :esc(icon?.initial||icon?.name?.slice(0,1)||"？")}
+                    </div>
+
+                    <div>
+                      <strong>${esc(answer.iconName||"名前なし")}</strong>
+                      <p style="margin:4px 0;">${esc(answer.text||"")}</p>
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
           </div>
         `).join("")
-      : '<p class="small">まだ履歴はありません。</p>';
+      :'<p class="small">まだ履歴はありません。</p>';
 }
 async function join(){
  const room=$("roomId").value.trim(), password=$("roomPassword").value;
@@ -1427,6 +1494,114 @@ $("showQuestionPage").addEventListener("click",()=>{
  // 質問を引くボタン
 $("drawQuestion").addEventListener("click",()=>{
   drawNextQuestion();
+});
+  // 質問を追加するボタン
+$("addQuestion").addEventListener("click",async()=>{
+  const text=prompt("追加したい質問を入力してください。");
+
+  if(!text||!text.trim())return;
+
+  const newQuestion={
+    id:"user_"+uid(),
+    text:text.trim()
+  };
+
+  const data=questionData||{
+    questions:[],
+    history:[],
+    currentQuestion:null
+  };
+
+  const questions=Array.isArray(data.questions)
+    ?data.questions:[];
+  const history=Array.isArray(data.history)
+    ?data.history:[];
+
+  const nextData={
+    ...data,
+    questions:[...questions,newQuestion],
+    currentQuestion:newQuestion,
+    history:[
+      ...history,
+      {
+        questionId:newQuestion.id,
+        question:newQuestion.text,
+        answers:[]
+      }
+    ]
+  };
+
+  await set(questionRef,nextData);
+});
+  // 回答用アイコンの選択
+$("answerArea").addEventListener("click",e=>{
+  const button=e.target.closest("[data-answer-icon]");
+  if(!button)return;
+
+  answerIconId=button.dataset.answerIcon;
+
+  $("answerIconList").querySelectorAll("[data-answer-icon]")
+    .forEach(icon=>{
+      icon.style.outline=
+        icon.dataset.answerIcon===answerIconId
+          ?"3px solid #5577cc"
+          :"none";
+    });
+});
+  // 回答を送信する
+$("answerArea").addEventListener("click",async e=>{
+  if(e.target.id!=="submitAnswer")return;
+
+  if(!answerIconId){
+    alert("回答するキャラクターを選んでください。");
+    return;
+  }
+
+  const answerText=$("answerText").value.trim();
+
+  if(!answerText){
+    alert("回答を入力してください。");
+    return;
+  }
+
+  const data=questionData||{};
+  const history=Array.isArray(data.history)?[...data.history]:[];
+  const current=data.currentQuestion;
+
+  if(!current)return;
+
+  const target=history.find(
+    item=>item.questionId===current.id
+  );
+
+  if(!target){
+    alert("質問の履歴が見つかりません。");
+    return;
+  }
+
+  const icon=state.icons.find(
+    item=>item.id===answerIconId
+  );
+
+  const answers=Array.isArray(target.answers)
+    ?[...target.answers]:[];
+
+  answers.push({
+    id:uid(),
+    iconId:answerIconId,
+    iconName:icon?.name||"名前なし",
+    text:answerText
+  });
+
+  target.answers=answers;
+
+  await set(questionRef,{
+    ...data,
+    history
+  });
+
+  answerIconId=null;
+  alert("回答を共有したよ！");
 });
   
 // ダイスメニューを開閉する
