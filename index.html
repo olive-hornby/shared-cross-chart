@@ -311,19 +311,96 @@ textarea{min-height:76px;resize:vertical}
   );
 }
   
+/* チャート操作エリア */
 .chart-head{
   display:flex;
-  gap:8px;
+  justify-content:space-between;
   align-items:center;
-  margin-bottom:8px;
+  gap:10px;
+  flex-wrap:wrap;
+  padding:9px 10px;
+  margin-bottom:10px;
+  background:#f7f8fb;
+  border:1px solid #e6e9f0;
+  border-radius:10px;
 }
 
-.chart-head input{
-  font-weight:650;
-  max-width:230px;
+.chart-tools-left,
+.chart-tools-right{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
 }
 
-.chart-head .spacer{flex:1}
+/* 操作ボタン共通 */
+.chart-head button{
+  font-size:12px;
+  padding:7px 11px;
+  border-radius:7px;
+  background:#ffffff;
+  color:#566074;
+  border:1px solid #e0e4ec;
+  transition:background .15s, border-color .15s;
+}
+
+.chart-head button:hover{
+  background:#edf0f8;
+  border-color:#cbd2e2;
+}
+
+/* タイトル編集ボタン */
+.chart-head button[data-edit-title]{
+  background:#e9edff;
+  color:#4659b8;
+  border-color:#d9e0ff;
+  font-weight:600;
+}
+
+.chart-head button[data-edit-title]:hover{
+  background:#dce3ff;
+}
+
+/* テーマ選択 */
+.chart-head select[data-theme]{
+  width:auto;
+  max-width:145px;
+  padding:7px 25px 7px 9px;
+  font-size:12px;
+  border:1px solid #e0e4ec;
+  border-radius:7px;
+  background:#fff;
+  color:#566074;
+  cursor:pointer;
+}
+
+/* 削除ボタン */
+.chart-head button.danger{
+  background:#fff5f5;
+  color:#bd5963;
+  border-color:#f2dfe1;
+}
+
+.chart-head button.danger:hover{
+  background:#ffe8ea;
+  border-color:#e9bfc4;
+}
+
+/* スマートフォン */
+@media(max-width:760px){
+  .chart-head{
+    align-items:flex-start;
+  }
+
+  .chart-tools-left,
+  .chart-tools-right{
+    width:100%;
+  }
+
+  .chart-tools-right{
+    justify-content:flex-end;
+  }
+}
 
 .board{
   position:relative;
