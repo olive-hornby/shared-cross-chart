@@ -631,6 +631,12 @@ function render(){
 </div>
 <div class="chart-head">
   <button data-edit-title="${c.id}">タイトル編集</button>
+  <select data-theme="${c.id}" aria-label="タイトルテーマ">
+    <option value="standard" ${(c.titleTheme||"standard")==="standard"?"selected":""}>スタンダード</option>
+    <option value="classic" ${c.titleTheme==="classic"?"selected":""}>クラシック</option>
+    <option value="mystery" ${c.titleTheme==="mystery"?"selected":""}>ミステリアス</option>
+    <option value="natural" ${c.titleTheme==="natural"?"selected":""}>ナチュラル</option>
+  </select>
   <span class="spacer"></span>
   <button data-color="${c.id}">背景色</button>
   <button data-axis="${c.id}">軸ラベル</button>
@@ -1090,7 +1096,18 @@ $("choiceButton").addEventListener("click",()=>{
 
 
 $("charts").addEventListener("change",e=>{const title=e.target.closest("[data-title]");if(title)mutate(()=>{const c=state.charts.find(c=>c.id===title.dataset.title);if(c)c.title=title.value})});
-$("charts").addEventListener("click",e=>{
+$("charts").addEventListener("change",e=>{
+  const theme=e.target.closest("[data-theme]");
+  if(!theme)return;
+
+  mutate(()=>{
+    const c=state.charts.find(
+      c=>c.id===theme.dataset.theme
+    );
+    if(c)c.titleTheme=theme.value;
+  });
+});
+  $("charts").addEventListener("click",e=>{
   const editTitle=e.target.closest("[data-edit-title]");
   if(!editTitle)return;
 
