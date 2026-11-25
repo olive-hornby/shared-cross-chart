@@ -1155,7 +1155,8 @@ questionUnsubscribe=onValue(questionRef,snap=>{
     if(!Array.isArray(state.icons))state.icons=[];
     state.charts.forEach(c=>{if(!Array.isArray(c.markers))c.markers=[];});
     if(!activeChart)activeChart=state.charts[0]?.id;
-    render();
+        render();
+    renderQuestionRoom();
     applyingRemote=false;
     $("syncStatus").textContent="● 同期中";
   });
