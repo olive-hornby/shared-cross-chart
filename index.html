@@ -115,55 +115,85 @@ h1{font-size:18px;margin:0}header .spacer{flex:1}.status{font-size:12px;color:va
 <label class="row small">データ読込 <input type="file" id="importJson" accept="application/json" style="max-width:190px"></label>
 <span class="spacer"></span><span class="small">アイコンを選んでから盤面をクリック、またはドラッグして移動</span>
 </div>
-<div id="workspace">
-<aside class="panel sidebar"><div class="sidebar-inner">
-<section><h3>チャート一覧</h3><div id="chartList" class="chart-list"></div></section>
-<section><h3>アイコン一覧</h3><button id="addPreset">＋ プリセット</button><button id="uploadIcon">画像追加</button><input type="file" id="iconFile" accept="image/*" class="hidden"></div><div id="iconBank" class="iconbank"></div><p class="small">アイコンを選択後、盤面をクリックすると配置できます。</p></section>
-<section>
-<h3>選択中のアイコン・駒</h3>
-<div id="selectionInfo" class="small">アイコンを選択してください。</div>
-<button id="editMarker" disabled>アイコン名・コメントを編集</button>
-<button id="deleteMarker" class="danger" disabled>盤面から削除</button>
-<button id="deleteIcon" class="danger" disabled>アイコン一覧から削除</button>
-<button id="changeIconColor">アイコン背景色</button>
-</section>
-</div></aside>
-<section id="charts"></section>
-  <aside id="chatPanel" class="panel">
+
+<!-- 上部メニュー -->
+<div id="workspaceMenu">
   <div class="row">
-    <h3 style="margin:0">ルームチャット</h3>
-    <span class="spacer"></span>
+    <button id="menuToggle" type="button">☰ メニューを開く</button>
   </div>
 
-  <div id="chatMessages">
-    <p class="small">チャットを読み込んでいます。</p>
-  </div>
+  <aside id="menuContents" class="panel sidebar">
+    <div class="sidebar-inner">
 
-  <div class="chat-input-area">
-    <input id="chatName" placeholder="ニックネーム">
-    <textarea id="chatInput" rows="2" placeholder="メッセージを入力"></textarea>
-    <div class="row">
-      <button id="sendChat" class="primary" style="flex:1">送信</button>
-      <button id="diceButton">🎲 ダイス</button>
-      <button id="choiceButton">choice</button>
+      <section>
+        <h3>チャート一覧</h3>
+        <div id="chartList" class="chart-list"></div>
+      </section>
+
+      <section>
+        <h3>アイコン一覧</h3>
+        <button id="addPreset">＋ プリセット</button>
+        <button id="uploadIcon">画像追加</button>
+        <input type="file" id="iconFile" accept="image/*" class="hidden">
+        <div id="iconBank" class="iconbank"></div>
+        <p class="small">アイコンを選択後、盤面をクリックすると配置できます。</p>
+      </section>
+
+      <section>
+        <h3>選択中のアイコン・駒</h3>
+        <div id="selectionInfo" class="small">アイコンを選択してください。</div>
+        <button id="editMarker" disabled>アイコン名・コメントを編集</button>
+        <button id="deleteMarker" class="danger" disabled>盤面から削除</button>
+        <button id="deleteIcon" class="danger" disabled>アイコン一覧から削除</button>
+        <button id="changeIconColor">アイコン背景色</button>
+      </section>
+
     </div>
-    
-<div id="diceMenu" style="display:none; border:1px solid #ccc; border-radius:10px; padding:12px; margin-top:8px;">
-  <strong>🎲 ダイスを選択</strong>
-  <div class="row" style="flex-wrap:wrap; margin-top:10px;">
-    <button type="button" class="dice-option" data-dice="1d3">1D3</button>
-    <button type="button" class="dice-option" data-dice="1d4">1D4</button>
-    <button type="button" class="dice-option" data-dice="1d6">1D6</button>
-    <button type="button" class="dice-option" data-dice="1d10">1D10</button>
-    <button type="button" class="dice-option" data-dice="1d20">1D20</button>
-    <button type="button" class="dice-option" data-dice="1d100">1D100</button>
-    <button type="button" class="dice-option" data-dice="2d6">2D6</button>
-  </div>
+  </aside>
 </div>
 
-  </div>
-</aside>
+<!-- チャートとチャット -->
+<div id="workspace">
+
+  <section id="charts"></section>
+
+  <aside id="chatPanel" class="panel">
+    <div class="row">
+      <h3 style="margin:0">ルームチャット</h3>
+      <span class="spacer"></span>
+    </div>
+
+    <div id="chatMessages">
+      <p class="small">チャットを読み込んでいます。</p>
+    </div>
+
+    <div class="chat-input-area">
+      <input id="chatName" placeholder="ニックネーム">
+      <textarea id="chatInput" rows="2" placeholder="メッセージを入力"></textarea>
+
+      <div class="row">
+        <button id="sendChat" class="primary" style="flex:1">送信</button>
+        <button id="diceButton">🎲 ダイス</button>
+        <button id="choiceButton">choice</button>
+      </div>
+
+      <div id="diceMenu" style="display:none; border:1px solid #ccc; border-radius:10px; padding:12px; margin-top:8px;">
+        <strong>🎲 ダイスを選択</strong>
+        <div class="row" style="flex-wrap:wrap; margin-top:10px;">
+          <button type="button" class="dice-option" data-dice="1d3">1D3</button>
+          <button type="button" class="dice-option" data-dice="1d4">1D4</button>
+          <button type="button" class="dice-option" data-dice="1d6">1D6</button>
+          <button type="button" class="dice-option" data-dice="1d10">1D10</button>
+          <button type="button" class="dice-option" data-dice="1d20">1D20</button>
+          <button type="button" class="dice-option" data-dice="1d100">1D100</button>
+          <button type="button" class="dice-option" data-dice="2d6">2D6</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
 </div>
+
 </div>
 </main>
 <div id="modalRoot"></div>
