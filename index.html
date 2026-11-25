@@ -836,7 +836,7 @@ textarea{min-height:76px;resize:vertical}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-import { getDatabase, ref, onValue, set, push, onChildAdded, query, limitToLast, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+import { getDatabase, ref, onValue, set, push, onChildAdded, query, limitToLast, runTransaction, get } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
 // Firebase Console > Project settings > Your apps で取得した値に置き換える
 const firebaseConfig = {
@@ -1141,76 +1141,139 @@ function renderQuestionRoom(){
         `).join("")
       :'<p class="small">まだ履歴はありません。</p>';
 }
+
 async function join(){
- const room=$("roomId").value.trim(), password=$("roomPassword").value;
- if(!room||!password){$("gateError").textContent="ルームIDとパスワードを入力してください。";return}
+ const room=$("roomId").value.trim();
+ const password=$("roomPassword").value;
+
+ if(!room||!password){
+  $("gateError").textContent="ルームIDとパスワードを入力してください。";
+  return;
+ }
+
  $("gateError").textContent="接続中…";
+
  try{
-  const app=initializeApp(firebaseConfig),auth=getAuth(app);
-await signInAnonymously(auth);
-currentUserId=auth.currentUser.uid;
-  const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(room+":"+password));
-  const hash=[...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,"0")).join("");
+  const app=initializeApp(firebaseConfig);
+  const auth=getAuth(app);
+
+  await signInAnonymously(auth);
+  currentUserId=auth.currentUser.uid;
+
+  const hash=await hashText(room+":"+password);
+  const roomIdHash=await hashText(room);
   const database=getDatabase(app);
+
+  // ルームIDの登録情報を確認
+  const registryRef=ref(database,"roomRegistry/"+roomIdHash);
+  let registrySnap=await get(registryRef);
+
+  if(registrySnap.exists()){
+   // 登録済みIDならパスワードを照合
+   if(registrySnap.val().roomHash!==hash){
+    throw new Error("このルームIDは登録済みです。パスワードを確認してください。");
+   }
+  }else{
+   // 登録情報がない場合、以前から存在するルームか確認
+   const oldRoomRef=ref(database,"rooms/"+hash);
+   const oldRoomSnap=await get(oldRoomRef);
+
+   if(!oldRoomSnap.exists()){
+    throw new Error("ルームが見つかりません。新規作成してください。");
+   }
+
+   // 既存ルームを登録簿に登録
+   const result=await runTransaction(registryRef,current=>{
+    if(current===null){
+     return {
+      roomHash:hash,
+      createdAt:Date.now()
+     };
+    }
+    return;
+   });
+
+   // 同時に別の登録が行われた場合も確認
+   if(!result.committed){
+    registrySnap=await get(registryRef);
+
+    if(!registrySnap.exists()||registrySnap.val().roomHash!==hash){
+     throw new Error("このルームIDはすでに使用されています。");
+    }
+   }
+  }
 
   // 盤面の接続
   dbRef=ref(database,"rooms/"+hash);
 
   // チャットの接続
   chatRef=ref(database,"roomChats/"+hash);
-   // 質問ルームの接続
-questionRef=ref(database,"roomQuestions/"+hash);
+
+  // 質問ルームの接続
+  questionRef=ref(database,"roomQuestions/"+hash);
+
   if(chatUnsubscribe)chatUnsubscribe();
   chatItems=[];
 
   const recentChats=query(chatRef,limitToLast(100));
 
   chatUnsubscribe=onChildAdded(recentChats,snap=>{
-    chatItems.push({
-      id:snap.key,
-      ...snap.val()
-    });
+   chatItems.push({
+    id:snap.key,
+    ...snap.val()
+   });
 
-    if(chatItems.length>100){
-      chatItems.shift();
-    }
+   if(chatItems.length>100){
+    chatItems.shift();
+   }
 
-    renderChat();
+   renderChat();
   });
+
   const url=new URL(location.href);
   url.searchParams.set("room",room);
   history.replaceState({}, "", url);
 
   // 質問ルームの受信
-if(questionUnsubscribe)questionUnsubscribe();
+  if(questionUnsubscribe)questionUnsubscribe();
 
-questionUnsubscribe=onValue(questionRef,snap=>{
-  questionData=snap.exists()?snap.val():{
+  questionUnsubscribe=onValue(questionRef,snap=>{
+   questionData=snap.exists()?snap.val():{
     questions:[],
     history:[],
     currentQuestion:null
-  };
+   };
 
-  console.log("質問データ受信成功",questionData);
-  renderQuestionRoom();
+   console.log("質問データ受信成功",questionData);
+   renderQuestionRoom();
 
-},error=>{
-  console.error("質問ルーム受信エラー",error);
-  alert("質問ルームの接続エラー："+error.message);
-});
-   
+  },error=>{
+   console.error("質問ルーム受信エラー",error);
+   alert("質問ルームの接続エラー："+error.message);
+  });
+
   // 盤面の受信
+  if(unsubscribe)unsubscribe();
+
   unsubscribe=onValue(dbRef,snap=>{
-    applyingRemote=true;
-    state=snap.exists()?snap.val():defaultState();
-    if(!Array.isArray(state.charts))state=defaultState();
-    if(!Array.isArray(state.icons))state.icons=[];
-    state.charts.forEach(c=>{if(!Array.isArray(c.markers))c.markers=[];});
-    if(!activeChart)activeChart=state.charts[0]?.id;
-        render();
-    renderQuestionRoom();
-    applyingRemote=false;
-    $("syncStatus").textContent="● 同期中";
+   applyingRemote=true;
+
+   state=snap.exists()?snap.val():defaultState();
+
+   if(!Array.isArray(state.charts))state=defaultState();
+   if(!Array.isArray(state.icons))state.icons=[];
+
+   state.charts.forEach(c=>{
+    if(!Array.isArray(c.markers))c.markers=[];
+   });
+
+   if(!activeChart)activeChart=state.charts[0]?.id;
+
+   render();
+   renderQuestionRoom();
+
+   applyingRemote=false;
+   $("syncStatus").textContent="● 同期中";
   });
 
   hide("gate");
@@ -1218,10 +1281,11 @@ questionUnsubscribe=onValue(questionRef,snap=>{
   $("syncStatus").textContent="接続済み";
 
  }catch(e){
-  $("gateError").textContent="接続できませんでした。Firebase設定・匿名認証・データベースルールを確認してください。";
+  $("gateError").textContent=e.message||"接続できませんでした。";
   console.error(e);
  }
 }
+
 
   
 function rollDice(expression){
