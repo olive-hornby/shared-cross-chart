@@ -834,7 +834,7 @@ textarea{min-height:76px;resize:vertical}
 </main>
 <div id="modalRoot"></div>
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import { getDatabase, ref, onValue, set, push, onChildAdded, query, limitToLast, runTransaction, get } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
@@ -1154,8 +1154,8 @@ async function join(){
  $("gateError").textContent="接続中…";
 
  try{
-  const app=initializeApp(firebaseConfig);
-  const auth=getAuth(app);
+  const app=getApps().length ? getApp() : initializeApp(firebaseConfig);
+const auth=getAuth(app);
 
   await signInAnonymously(auth);
   currentUserId=auth.currentUser.uid;
@@ -1286,6 +1286,58 @@ async function join(){
  }
 }
 
+
+async function createRoom(){
+ const room=$("roomId").value.trim();
+ const password=$("roomPassword").value;
+
+ if(!room||!password){
+  $("gateError").textContent="ルームIDとパスワードを入力してください。";
+  return;
+ }
+
+ $("gateError").textContent="新規作成中…";
+
+ try{
+  const app=initializeApp(firebaseConfig);
+  const auth=getAuth(app);
+
+  await signInAnonymously(auth);
+  currentUserId=auth.currentUser.uid;
+
+  const hash=await hashText(room+":"+password);
+  const roomIdHash=await hashText(room);
+  const database=getDatabase(app);
+
+  // ルームIDが未使用の場合だけ登録する
+  const registryRef=ref(database,"roomRegistry/"+roomIdHash);
+
+  const result=await runTransaction(registryRef,current=>{
+   if(current===null){
+    return {
+     roomHash:hash,
+     createdAt:Date.now()
+    };
+   }
+   return;
+  });
+
+  if(!result.committed){
+   throw new Error("このルームIDはすでに使用されています。別のIDを指定してください。");
+  }
+
+  // 新しいルームの盤面を初期化
+  const newRoomRef=ref(database,"rooms/"+hash);
+  await set(newRoomRef,defaultState());
+
+  // 新規作成後は通常の参加処理で接続
+  await join();
+
+ }catch(e){
+  $("gateError").textContent=e.message||"新規作成に失敗しました。";
+  console.error(e);
+ }
+}
 
   
 function rollDice(expression){
