@@ -1083,6 +1083,16 @@ function renderQuestionRoom(){
                     <div>
                       <strong>${esc(answer.iconName||"名前なし")}</strong>
                       <p style="margin:4px 0;">${esc(answer.text||"")}</p>
+
+                      ${answer.userId===currentUserId
+                        ?`<button
+                            type="button"
+                            data-edit-answer="${esc(answer.id)}"
+                            data-question-id="${esc(item.questionId)}"
+                            style="margin-top:4px;">
+                            編集
+                          </button>`
+                        :""}
                     </div>
                   </div>
                 `;
@@ -1590,8 +1600,9 @@ $("answerArea").addEventListener("click",async e=>{
   const answers=Array.isArray(target.answers)
     ?[...target.answers]:[];
 
-  answers.push({
+   answers.push({
     id:uid(),
+    userId:currentUserId,
     iconId:answerIconId,
     iconName:icon?.name||"名前なし",
     text:answerText
@@ -1605,6 +1616,48 @@ $("answerArea").addEventListener("click",async e=>{
   });
 
   answerIconId=null;
+});
+  // 自分の回答を編集する
+$("questionHistory").addEventListener("click",async e=>{
+  const button=e.target.closest("[data-edit-answer]");
+  if(!button)return;
+
+  const answerId=button.dataset.editAnswer;
+  const questionId=button.dataset.questionId;
+
+  const data=questionData||{};
+  const history=Array.isArray(data.history)?[...data.history]:[];
+
+  const target=history.find(
+    item=>item.questionId===questionId
+  );
+
+  if(!target)return;
+
+  const answer=(target.answers||[]).find(
+    item=>item.id===answerId
+  );
+
+  if(!answer||answer.userId!==currentUserId){
+    alert("この回答は編集できません。");
+    return;
+  }
+
+  const newText=prompt("回答を編集してください。",answer.text||"");
+
+  if(newText===null)return;
+
+  if(!newText.trim()){
+    alert("回答を空欄にはできません。");
+    return;
+  }
+
+  answer.text=newText.trim();
+
+  await set(questionRef,{
+    ...data,
+    history
+  });
 });
   
 // ダイスメニューを開閉する
