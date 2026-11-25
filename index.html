@@ -1419,8 +1419,9 @@ $("showQuestionPage").addEventListener("click",()=>{
   $("showQuestionPage").classList.add("primary");
 });
 
-  // 質問を引くボタン
+ // 質問を引くボタン
 $("drawQuestion").addEventListener("click",()=>{
+  alert("ボタンは反応してるよ！ questionData："+(questionData?"あり":"なし"));
   drawNextQuestion();
 });
   
