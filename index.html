@@ -1425,9 +1425,14 @@ $("showQuestionPage").addEventListener("click",()=>{
 });
 
  // 質問を引くボタン
-$("drawQuestion").addEventListener("click",()=>{
-  alert("ボタンは反応してるよ！ questionData："+(questionData?"あり":"なし"));
-  drawNextQuestion();
+$("drawQuestion").addEventListener("click",async()=>{
+  try{
+    await drawNextQuestion();
+    alert("質問を引く処理が完了したよ！");
+  }catch(e){
+    console.error("質問を引くエラー",e);
+    alert("質問を引くときにエラーが発生したよ："+e.message);
+  }
 });
   
 // ダイスメニューを開閉する
