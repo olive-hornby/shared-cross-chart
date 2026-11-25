@@ -1765,7 +1765,8 @@ $("charts").addEventListener("pointerdown",e=>{
   const f=findMarker(el.dataset.marker);
   if(!f)return;
   selectedMarker=f.marker.id;
-  drag={id:f.marker.id,chartId:f.chart.id,board:el.closest("[data-board]"),pointer:e.pointerId};
+selectedIcon=f.marker.iconId;
+drag={id:f.marker.id,chartId:f.chart.id,board:el.closest("[data-board]"),pointer:e.pointerId};
   el.setPointerCapture(e.pointerId);
   e.preventDefault()
 });
