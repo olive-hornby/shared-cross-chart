@@ -848,8 +848,9 @@ const defaultState = () => ({charts:[{id:uid(),title:"チャート 1",top:"好�
 function uid(){return Math.random().toString(36).slice(2,10)+Date.now().toString(36)}
 let state=defaultState(), selectedIcon=null, selectedMarker=null, activeChart=null, layout="multi", dbRef=null, unsubscribe=null, demo=false, applyingRemote=false, saveTimer=null;
 let chatRef=null, chatUnsubscribe=null, chatItems=[];
-  let answerIconId=null;
 let questionRef=null, questionUnsubscribe=null, questionData=null;
+let answerIconId=null;
+let currentUserId=null;
 const colors=["#dce8ff","#f9dfdf","#dff2e4","#fff0cf","#eee2ff","#d9f2f1"];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function validConfig(){return firebaseConfig.apiKey!=="YOUR_API_KEY" && (firebaseConfig.databaseURL.includes("firebaseio.com") || firebaseConfig.databaseURL.includes(".firebasedatabase.app"))}
@@ -1096,7 +1097,9 @@ async function join(){
  if(!room||!password){$("gateError").textContent="ルームIDとパスワードを入力してください。";return}
  $("gateError").textContent="接続中…";
  try{
-  const app=initializeApp(firebaseConfig),auth=getAuth(app);await signInAnonymously(auth);
+  const app=initializeApp(firebaseConfig),auth=getAuth(app);
+await signInAnonymously(auth);
+currentUserId=auth.currentUser.uid;
   const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(room+":"+password));
   const hash=[...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,"0")).join("");
   const database=getDatabase(app);
