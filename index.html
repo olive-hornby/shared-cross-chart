@@ -202,7 +202,42 @@ textarea{min-height:76px;resize:vertical}
 }
 
 .chart-card.focus{grid-column:1/-1}
+/* 装飾タイトル */
+.chart-title-area{
+  text-align:center;
+  padding:12px 10px 8px;
+}
 
+.chart-kicker{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:4px;
+  color:#8992a5;
+  margin-bottom:5px;
+}
+
+.chart-title{
+  font-size:24px;
+  font-weight:800;
+  letter-spacing:2px;
+  line-height:1.4;
+  margin:0;
+  color:#30384a;
+  overflow-wrap:anywhere;
+}
+
+.chart-title-line{
+  width:72px;
+  height:2px;
+  margin:10px auto 0;
+  background:linear-gradient(
+    to right,
+    transparent,
+    #9aa5c5,
+    transparent
+  );
+}
+  
 .chart-head{
   display:flex;
   gap:8px;
