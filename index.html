@@ -745,10 +745,11 @@ textarea{min-height:76px;resize:vertical}
       <section>
         <h3>選択中のアイコン・駒</h3>
         <div id="selectionInfo" class="small">アイコンを選択してください。</div>
-        <button id="editMarker" disabled>アイコン名・コメントを編集</button>
-        <button id="deleteMarker" class="danger" disabled>盤面から削除</button>
-        <button id="deleteIcon" class="danger" disabled>アイコン一覧から削除</button>
-        <button id="changeIconColor">アイコン背景色</button>
+<button id="editIconName" disabled>アイコン名を編集</button>
+<button id="editMarker" disabled>駒のコメントを編集</button>
+<button id="deleteMarker" class="danger" disabled>盤面から削除</button>
+<button id="deleteIcon" class="danger" disabled>アイコン一覧から削除</button>
+<button id="changeIconColor">アイコン背景色</button>
       </section>
 
     </div>
@@ -924,25 +925,34 @@ function modal(title,body,onSave){
  $("saveModal").onclick=()=>{onSave();$("modalRoot").innerHTML="";};
 }
 function axisEditor(id){const c=state.charts.find(x=>x.id===id);modal("軸ラベルを編集",`<div class="field"><label>上</label><input id="aTop" value="${esc(c.top)}"></div><div class="field"><label>下</label><input id="aBottom" value="${esc(c.bottom)}"></div><div class="field"><label>左</label><input id="aLeft" value="${esc(c.left)}"></div><div class="field"><label>右</label><input id="aRight" value="${esc(c.right)}"></div>`,()=>mutate(()=>{c.top=$("aTop").value;c.bottom=$("aBottom").value;c.left=$("aLeft").value;c.right=$("aRight").value}))}
- function editSelected(){
-  const found=findMarker(selectedMarker);
-  if(!found)return;
-
-  const m=found.marker;
-  const icon=state.icons.find(i=>i.id===m.iconId);
+ // アイコン名を編集する
+function editSelectedIcon(){
+  const icon=state.icons.find(i=>i.id===selectedIcon);
   if(!icon)return;
 
-  modal("アイコン名・コメントの編集",`
+  modal("アイコン名の編集",`
     <div class="field">
       <label>アイコン名（すべてのチャートで共通）</label>
       <input id="mName" value="${esc(icon.name||"")}">
     </div>
+  `,()=>mutate(()=>{
+    icon.name=$("mName").value;
+  }));
+}
+
+// 盤面上の駒のコメントを編集する
+function editSelected(){
+  const found=findMarker(selectedMarker);
+  if(!found)return;
+
+  const m=found.marker;
+
+  modal("コメントの編集",`
     <div class="field">
       <label>この駒のコメント</label>
       <textarea id="mComment">${esc(m.comment||"")}</textarea>
     </div>
   `,()=>mutate(()=>{
-    icon.name=$("mName").value;
     m.comment=$("mComment").value;
   }));
 }
