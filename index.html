@@ -905,11 +905,25 @@ function render(){
   </div>`
 }).join("")}
     </div></article>`).join("");
-  $("selectionInfo").textContent=selectedMarker?findMarker(selectedMarker)?.marker.comment||"選択中。名前・コメントを編集できます。":"アイコンを選択してください。";
-  $("editMarker").disabled=!selectedMarker;
-$("deleteMarker").disabled=!selectedMarker;
-$("deleteIcon").disabled=!selectedIcon || !state.icons.some(i=>i.id===selectedIcon);
-  $("changeIconColor").disabled=!selectedIcon || !state.icons.some(i=>i.id===selectedIcon);
+  const selectedIconData=state.icons.find(i=>i.id===selectedIcon);
+const selectedMarkerData=findMarker(selectedMarker);
+
+if(selectedMarkerData){
+  $("selectionInfo").textContent=
+    "選択中の駒："+(selectedIconData?.name||"名前なし");
+}else if(selectedIconData){
+  $("selectionInfo").textContent=
+    "選択中のアイコン："+(selectedIconData.name||"名前なし");
+}else{
+  $("selectionInfo").textContent=
+    "アイコンまたは盤面上の駒を選択してください。";
+}
+
+$("editIconName").disabled=!selectedIconData;
+$("editMarker").disabled=!selectedMarkerData;
+$("deleteMarker").disabled=!selectedMarkerData;
+$("deleteIcon").disabled=!selectedIconData;
+$("changeIconColor").disabled=!selectedIconData;
   $("layoutToggle").textContent=layout==="multi"?"表示：複数":"表示：1つ";
 }
 function findMarker(id){for(const c of state.charts){const marker=c.markers.find(m=>m.id===id);if(marker)return {chart:c,marker}}return null}
@@ -1382,6 +1396,7 @@ $("layoutToggle").onclick=()=>{layout=layout==="multi"?"single":"multi";render()
 $("addPreset").onclick=()=>{const name=prompt("アイコンの名前（例：探索者A）","新しいアイコン");if(name)addIcon({id:uid(),name,initial:name.slice(0,1),color:colors[state.icons.length%colors.length]})};
 $("uploadIcon").onclick=()=>$("iconFile").click();
 $("iconFile").onchange=async e=>{const file=e.target.files[0];if(!file)return;if(file.size>450000){alert("画像は450KB以下にしてください。");return}const data=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)});addIcon({id:uid(),name:file.name.replace(/\.[^.]+$/,""),image:data,color:colors[state.icons.length%colors.length]});e.target.value=""};
+$("editIconName").onclick=editSelectedIcon;
 $("editMarker").onclick=editSelected;
 $("deleteMarker").onclick=()=>{const f=findMarker(selectedMarker);if(!f)return;mutate(()=>{f.chart.markers=f.chart.markers.filter(m=>m.id!==selectedMarker);selectedMarker=null})};
 $("deleteIcon").onclick=()=>{
@@ -1730,7 +1745,19 @@ $("charts").addEventListener("change",e=>{
   });
 });
 $("chartList").onclick=e=>{const b=e.target.closest("[data-chart]");if(b){activeChart=b.dataset.chart;if(layout==="multi")layout="single";render()}};
-$("iconBank").onclick=e=>{const b=e.target.closest("[data-icon]");if(b){selectedIcon=b.dataset.icon;render();$("selectionInfo").textContent="配置するアイコン："+(state.icons.find(i=>i.id===selectedIcon)?.name||"")}};
+$("iconBank").onclick=e=>{
+  const b=e.target.closest("[data-icon]");
+  if(!b)return;
+
+  selectedIcon=b.dataset.icon;
+  selectedMarker=null;
+
+  render();
+
+  const icon=state.icons.find(i=>i.id===selectedIcon);
+  $("selectionInfo").textContent=
+    "選択中のアイコン："+(icon?.name||"名前なし");
+};
 let drag=null;
 $("charts").addEventListener("pointerdown",e=>{
   const el=e.target.closest("[data-marker]");
