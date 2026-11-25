@@ -703,17 +703,24 @@ function render(){
   <div class="chart-title-line"></div>
 </div>
 <div class="chart-head">
-  <button data-edit-title="${c.id}">タイトル編集</button>
-  <select data-theme="${c.id}" aria-label="タイトルテーマ">
-    <option value="standard" ${(c.titleTheme||"standard")==="standard"?"selected":""}>スタンダード</option>
-    <option value="classic" ${c.titleTheme==="classic"?"selected":""}>クラシック</option>
-    <option value="mystery" ${c.titleTheme==="mystery"?"selected":""}>ミステリアス</option>
-    <option value="natural" ${c.titleTheme==="natural"?"selected":""}>ナチュラル</option>
-  </select>
-  <span class="spacer"></span>
-  <button data-color="${c.id}">背景色</button>
-  <button data-axis="${c.id}">軸ラベル</button>
-  <button class="danger" data-remove="${c.id}">削除</button>
+
+  <div class="chart-tools-left">
+    <button data-edit-title="${c.id}">✎ タイトル</button>
+
+    <select data-theme="${c.id}" aria-label="タイトルテーマ">
+      <option value="standard" ${(c.titleTheme||"standard")==="standard"?"selected":""}>標準</option>
+      <option value="classic" ${c.titleTheme==="classic"?"selected":""}>クラシック</option>
+      <option value="mystery" ${c.titleTheme==="mystery"?"selected":""}>ミステリアス</option>
+      <option value="natural" ${c.titleTheme==="natural"?"selected":""}>ナチュラル</option>
+    </select>
+  </div>
+
+  <div class="chart-tools-right">
+    <button data-color="${c.id}">背景色</button>
+    <button data-axis="${c.id}">軸ラベル</button>
+    <button class="danger" data-remove="${c.id}">削除</button>
+  </div>
+
 </div>
     <div class="board" data-board="${c.id}">
       <div class="axis x"></div><div class="axis y"></div>
