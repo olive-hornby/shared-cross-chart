@@ -298,27 +298,26 @@ textarea{min-height:76px;resize:vertical}
   );
 }
 
-/* クール */
-.theme-cool .chart-title{
-  color:#53649d;
+/* ダーク */
+.theme-dark .chart-title{
+  color:#ffffff;
   font-family:sans-serif;
   font-weight:700;
   letter-spacing:3px;
 }
 
-.theme-cool .chart-kicker{
-  color:#929bc8;
+.theme-dark .chart-kicker{
+  color:#c4c8d8;
 }
 
-.theme-cool .chart-title-line{
+.theme-dark .chart-title-line{
   background:linear-gradient(
     to right,
     transparent,
-    #7886c5,
+    #aab3d0,
     transparent
   );
 }
-
 /* エレガント */
 .theme-elegant .chart-title{
   color:#78614e;
@@ -832,7 +831,7 @@ function render(){
    <select data-theme="${c.id}" aria-label="タイトルテーマ">
   <option value="simple" ${(!c.titleTheme||c.titleTheme==="standard"||c.titleTheme==="simple")?"selected":""}>シンプル</option>
   <option value="cute" ${c.titleTheme==="cute"?"selected":""}>キュート</option>
-  <option value="cool" ${c.titleTheme==="cool"?"selected":""}>クール</option>
+  <option value="cool" ${c.titleTheme==="cool"?"selected":""}>ダーク</option>
   <option value="elegant" ${c.titleTheme==="elegant"?"selected":""}>エレガント</option>
 </select>
   </div>
