@@ -305,6 +305,61 @@ async function join(){
  }
 }
 
+  
+function rollDice(expression){
+  const exp=expression.replace(/\s/g,"").toLowerCase();
+
+  const parts=exp.match(/[+-]?[^+-]+/g);
+  if(!parts||parts.join("")!==exp){
+    throw new Error("ダイスの書き方が正しくありません。");
+  }
+
+  let total=0;
+  const details=[];
+
+  for(const part of parts){
+    const sign=part.startsWith("-")?-1:1;
+    const value=part.replace(/^[+-]/,"");
+
+    if(value.includes("d")){
+      const match=value.match(/^(\d*)d(\d+)$/);
+      if(!match)throw new Error("ダイスの書き方が正しくありません。");
+
+      const count=Number(match[1]||1);
+      const sides=Number(match[2]);
+
+      if(count<1||count>100||sides<1||sides>100000){
+        throw new Error("ダイスの個数または面数が範囲外です。");
+      }
+
+      const rolls=[];
+      for(let i=0;i<count;i++){
+        rolls.push(Math.floor(Math.random()*sides)+1);
+      }
+
+      const subtotal=rolls.reduce((a,b)=>a+b,0)*sign;
+      total+=subtotal;
+
+      details.push(
+        (sign<0?"-":"")+value+"["+rolls.join(", ")+"]"
+      );
+    }else{
+      if(!/^\d+$/.test(value)){
+        throw new Error("ダイスの書き方が正しくありません。");
+      }
+
+      const number=Number(value);
+      total+=number*sign;
+      details.push((sign<0?"-":"+")+number);
+    }
+  }
+
+  return {
+    total:total,
+    detail:details.join(" ")
+  };
+}
+
   async function sendChat(){
   const name=$("chatName").value.trim()||"名無し";
   const input=$("chatInput");
@@ -313,12 +368,36 @@ async function join(){
   if(!text||!chatRef)return;
 
   try{
-    await push(chatRef,{
+    
+const dicePattern=/^[\s\d+dD+\-]+$/;
+
+let messageData;
+
+if(/[dD]/.test(text)&&dicePattern.test(text)){
+  try{
+    const result=rollDice(text);
+
+    messageData={
       name:name,
-      text:text,
-      type:"text",
+      text:text+" → "+result.detail+" = "+result.total,
+      type:"dice",
       timestamp:Date.now()
-    });
+    };
+  }catch(e){
+    alert(e.message);
+    return;
+  }
+}else{
+  messageData={
+    name:name,
+    text:text,
+    type:"text",
+    timestamp:Date.now()
+  };
+}
+
+await push(chatRef,messageData);
+
 
     input.value="";
   }catch(e){
