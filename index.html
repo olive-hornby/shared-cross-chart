@@ -1505,6 +1505,7 @@ function startDemo(){demo=true;hide("setup");hide("gate");show("app");activeChar
 $("demoBtn").onclick=startDemo;
 if(validConfig()){hide("setup");show("gate");const r=new URLSearchParams(location.search).get("room");if(r)$("roomId").value=r;}else{show("setup")}
 $("joinBtn").onclick=join;
+  $("createRoomBtn").onclick=createRoom;
 $("copyLink").onclick=async()=>{await navigator.clipboard.writeText(location.href);$("syncStatus").textContent="URLをコピーしました"};
 
 $("addChart").onclick=()=>mutate(()=>{
