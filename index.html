@@ -628,6 +628,19 @@ document.querySelectorAll(".dice-option").forEach(button=>{
     sendChat();
   });
 });
+  
+// choiceボタンから選択肢を入力して抽選する
+$("choiceButton").addEventListener("click",()=>{
+  const choices=prompt(
+    "選択肢を入力してください。\nスペースで区切ってね。\n例：甘党 辛党 普通"
+  );
+
+  if(!choices||!choices.trim())return;
+
+  $("chatInput").value="choice "+choices.trim();
+  sendChat();
+});
+
 
 $("charts").addEventListener("change",e=>{const title=e.target.closest("[data-title]");if(title)mutate(()=>{const c=state.charts.find(c=>c.id===title.dataset.title);if(c)c.title=title.value})});
 $("chartList").onclick=e=>{const b=e.target.closest("[data-chart]");if(b){activeChart=b.dataset.chart;if(layout==="multi")layout="single";render()}};
