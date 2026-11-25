@@ -634,6 +634,53 @@ textarea{min-height:76px;resize:vertical}
   .chart-head input{max-width:150px}
   .marker{width:46px;height:46px}
 }
+  /* タイトルと操作エリアの背景色を統一 */
+
+/* スタンダード */
+.chart-title-area.theme-standard,
+.chart-head.theme-standard{
+  background:#f7f8fb;
+}
+
+/* クラシック */
+.chart-head.theme-classic{
+  background:#f4eee2;
+}
+
+/* ミステリアス */
+.chart-head.theme-mystery{
+  background:#25263b;
+  border-color:#45465e;
+}
+
+.chart-head.theme-mystery button{
+  background:#37384f;
+  color:#e4dcff;
+  border-color:#555671;
+}
+
+.chart-head.theme-mystery button[data-edit-title]{
+  background:#484465;
+  color:#e4dcff;
+  border-color:#625b87;
+}
+
+.chart-head.theme-mystery select[data-theme]{
+  background:#37384f;
+  color:#e4dcff;
+  border-color:#555671;
+}
+
+.chart-head.theme-mystery button.danger{
+  background:#493541;
+  color:#f2b8c2;
+  border-color:#76505c;
+}
+
+/* ナチュラル */
+.chart-head.theme-natural{
+  background:#edf1e8;
+}
 </style>
 
 </head>
@@ -779,7 +826,7 @@ function render(){
   <h2 class="chart-title">${esc(c.title||"無題チャート")}</h2>
   <div class="chart-title-line"></div>
 </div>
-<div class="chart-head">
+<div class="chart-head theme-${c.titleTheme||"standard"}">
 
   <div class="chart-tools-left">
     <button data-edit-title="${c.id}">✎ タイトル</button>
