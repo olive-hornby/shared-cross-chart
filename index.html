@@ -373,6 +373,24 @@ function rollDice(expression){
     detail:details.join(" ")
   };
 }
+  
+function rollChoice(expression){
+  const choices=expression.trim().split(/\s+/);
+
+  if(choices.length<2){
+    throw new Error("選択肢を2つ以上入力してください。");
+  }
+
+  const result=choices[
+    Math.floor(Math.random()*choices.length)
+  ];
+
+  return {
+    choices:choices,
+    result:result
+  };
+}
+
 
   async function sendChat(){
   const name=$("chatName").value.trim()||"名無し";
@@ -383,11 +401,26 @@ function rollDice(expression){
 
   try{
     
-const dicePattern=/^[\s\d+dD+\-]+$/;
 
 let messageData;
 
-if(/[dD]/.test(text)&&dicePattern.test(text)){
+if(/^choice\s+/i.test(text)){
+  try{
+    const expression=text.replace(/^choice\s+/i,"");
+    const result=rollChoice(expression);
+
+    messageData={
+      name:name,
+      text:"choice "+result.choices.join(" / ")+" → 🎯 "+result.result,
+      type:"choice",
+      timestamp:Date.now()
+    };
+  }catch(e){
+    alert(e.message);
+    return;
+  }
+
+}else if(/[dD]/.test(text)&&/^[\s\d+dD+\-]+$/.test(text)){
   try{
     const result=rollDice(text);
 
@@ -401,6 +434,7 @@ if(/[dD]/.test(text)&&dicePattern.test(text)){
     alert(e.message);
     return;
   }
+
 }else{
   messageData={
     name:name,
@@ -411,6 +445,7 @@ if(/[dD]/.test(text)&&dicePattern.test(text)){
 }
 
 await push(chatRef,messageData);
+
 
 
     input.value="";
