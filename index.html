@@ -1285,6 +1285,23 @@ $("menuToggle").addEventListener("click",()=>{
       ?"☰ メニューを開く"
       :"☰ メニューを閉じる";
 });
+
+  // ページ切り替え
+$("showChartPage").addEventListener("click",()=>{
+  $("chartPage").classList.remove("hidden");
+  $("questionPage").classList.add("hidden");
+
+  $("showChartPage").classList.add("primary");
+  $("showQuestionPage").classList.remove("primary");
+});
+
+$("showQuestionPage").addEventListener("click",()=>{
+  $("chartPage").classList.add("hidden");
+  $("questionPage").classList.remove("hidden");
+
+  $("showChartPage").classList.remove("primary");
+  $("showQuestionPage").classList.add("primary");
+});
   
 // ダイスメニューを開閉する
 $("diceButton").addEventListener("click",()=>{
