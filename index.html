@@ -257,58 +257,86 @@ textarea{min-height:76px;resize:vertical}
   );
 }
 
-/* クラシック */
-.theme-classic .chart-title{
-  color:#665039;
-  font-family:serif;
+/* シンプル */
+.theme-simple .chart-title{
+  color:#414a55;
+  font-family:sans-serif;
+  font-weight:600;
 }
 
-.theme-classic .chart-kicker{
-  color:#a18455;
+.theme-simple .chart-kicker{
+  color:#9299a3;
 }
 
-.theme-classic .chart-title-line{
+.theme-simple .chart-title-line{
   background:linear-gradient(
     to right,
     transparent,
-    #b69a6c,
+    #aeb6c0,
     transparent
   );
 }
 
-/* ミステリアス */
-.theme-mystery .chart-title{
-  color:#66558f;
-  font-family:serif;
+/* キュート */
+.theme-cute .chart-title{
+  color:#c05f88;
+  font-family:sans-serif;
+  font-weight:800;
 }
 
-.theme-mystery .chart-kicker{
-  color:#8273bb;
+.theme-cute .chart-kicker{
+  color:#d47b9d;
+  letter-spacing:3px;
 }
 
-.theme-mystery .chart-title-line{
+.theme-cute .chart-title-line{
   background:linear-gradient(
     to right,
     transparent,
-    #8273bb,
+    #e8a9c2,
     transparent
   );
 }
 
-/* ナチュラル */
-.theme-natural .chart-title{
-  color:#435a43;
+/* クール */
+.theme-cool .chart-title{
+  color:#53649d;
+  font-family:sans-serif;
+  font-weight:700;
+  letter-spacing:3px;
 }
 
-.theme-natural .chart-kicker{
-  color:#7c9270;
+.theme-cool .chart-kicker{
+  color:#929bc8;
 }
 
-.theme-natural .chart-title-line{
+.theme-cool .chart-title-line{
   background:linear-gradient(
     to right,
     transparent,
-    #91a88a,
+    #7886c5,
+    transparent
+  );
+}
+
+/* エレガント */
+.theme-elegant .chart-title{
+  color:#78614e;
+  font-family:serif;
+  font-weight:500;
+  letter-spacing:3px;
+}
+
+.theme-elegant .chart-kicker{
+  color:#a58b72;
+  letter-spacing:4px;
+}
+
+.theme-elegant .chart-title-line{
+  background:linear-gradient(
+    to right,
+    transparent,
+    #c4a98c,
     transparent
   );
 }
@@ -644,45 +672,7 @@ textarea{min-height:76px;resize:vertical}
   border-color:transparent;
 }
 
-/* クラシック */
-.chart-head.theme-classic{
-  background:transparent;
-}
 
-/* ミステリアス */
-.chart-head.theme-mystery{
-  background:transparent;
-  border-color:#45465e;
-}
-
-.chart-head.theme-mystery button{
-  background:#37384f;
-  color:#e4dcff;
-  border-color:#555671;
-}
-
-.chart-head.theme-mystery button[data-edit-title]{
-  background:#484465;
-  color:#e4dcff;
-  border-color:#625b87;
-}
-
-.chart-head.theme-mystery select[data-theme]{
-  background:#37384f;
-  color:#e4dcff;
-  border-color:#555671;
-}
-
-.chart-head.theme-mystery button.danger{
-  background:#493541;
-  color:#f2b8c2;
-  border-color:#76505c;
-}
-
-/* ナチュラル */
-.chart-head.theme-natural{
-  background:transparent;
-}
 
 /* テーマ背景の四隅をまっすぐにする */
 .chart-title-area,
@@ -839,12 +829,12 @@ function render(){
   <div class="chart-tools-left">
     <button data-edit-title="${c.id}">✎ タイトル</button>
 
-    <select data-theme="${c.id}" aria-label="タイトルテーマ">
-      <option value="standard" ${(c.titleTheme||"standard")==="standard"?"selected":""}>標準</option>
-      <option value="classic" ${c.titleTheme==="classic"?"selected":""}>クラシック</option>
-      <option value="mystery" ${c.titleTheme==="mystery"?"selected":""}>ミステリアス</option>
-      <option value="natural" ${c.titleTheme==="natural"?"selected":""}>ナチュラル</option>
-    </select>
+   <select data-theme="${c.id}" aria-label="タイトルテーマ">
+  <option value="simple" ${(!c.titleTheme||c.titleTheme==="standard"||c.titleTheme==="simple")?"selected":""}>シンプル</option>
+  <option value="cute" ${c.titleTheme==="cute"?"selected":""}>キュート</option>
+  <option value="cool" ${c.titleTheme==="cool"?"selected":""}>クール</option>
+  <option value="elegant" ${c.titleTheme==="elegant"?"selected":""}>エレガント</option>
+</select>
   </div>
 
   <div class="chart-tools-right">
