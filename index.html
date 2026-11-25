@@ -237,6 +237,79 @@ textarea{min-height:76px;resize:vertical}
     transparent
   );
 }
+/* クラシック */
+.chart-title-area.theme-classic{
+  background:#f4eee2;
+  border-radius:8px;
+  padding:16px 10px 12px;
+}
+
+.theme-classic .chart-kicker{
+  color:#a18455;
+}
+
+.theme-classic .chart-title{
+  color:#665039;
+  font-family:serif;
+}
+
+.theme-classic .chart-title-line{
+  background:linear-gradient(
+    to right,
+    transparent,
+    #b69a6c,
+    transparent
+  );
+}
+
+/* ミステリアス */
+.chart-title-area.theme-mystery{
+  background:#25263b;
+  border-radius:8px;
+  padding:16px 10px 12px;
+}
+
+.theme-mystery .chart-kicker{
+  color:#aaa0d5;
+}
+
+.theme-mystery .chart-title{
+  color:#e4dcff;
+  font-family:serif;
+}
+
+.theme-mystery .chart-title-line{
+  background:linear-gradient(
+    to right,
+    transparent,
+    #8273bb,
+    transparent
+  );
+}
+
+/* ナチュラル */
+.chart-title-area.theme-natural{
+  background:#edf1e8;
+  border-radius:8px;
+  padding:16px 10px 12px;
+}
+
+.theme-natural .chart-kicker{
+  color:#7c9270;
+}
+
+.theme-natural .chart-title{
+  color:#435a43;
+}
+
+.theme-natural .chart-title-line{
+  background:linear-gradient(
+    to right,
+    transparent,
+    #91a88a,
+    transparent
+  );
+}
   
 .chart-head{
   display:flex;
@@ -624,7 +697,7 @@ function render(){
   $("iconBank").innerHTML=state.icons.map(i=>`<button class="bank-icon" data-icon="${i.id}" title="${esc(i.name)}" style="background:${i.color||colors[0]}">${i.image?`<img src="${i.image}">`:`${esc(i.initial||i.name?.slice(0,1)||"？")}`}</button>`).join("");
   const visible=layout==="single"?(state.charts.filter(c=>c.id===activeChart)):state.charts;
   $("charts").innerHTML=visible.map(c=>`<article class="chart-card ${layout==="single"?"focus":""}" data-card="${c.id}" style="background:${esc(c.bgColor||"#ffffff")}">
-    <div class="chart-title-area">
+   <div class="chart-title-area theme-${c.titleTheme||"standard"}">
   <div class="chart-kicker">✦ CHART ✦</div>
   <h2 class="chart-title">${esc(c.title||"無題チャート")}</h2>
   <div class="chart-title-line"></div>
