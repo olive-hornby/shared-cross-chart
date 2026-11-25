@@ -118,7 +118,7 @@ h1{font-size:18px;margin:0}header .spacer{flex:1}.status{font-size:12px;color:va
 <div id="workspace">
 <aside class="panel sidebar"><div class="sidebar-inner">
 <section><h3>チャート一覧</h3><div id="chartList" class="chart-list"></div></section>
-<section><h3>アイコン一覧</h3><div class="row"><button id="addPreset">＋ プリセット</button><button id="uploadIcon">画像追加</button><input type="file" id="iconFile" accept="image/*" class="hidden"></div><div id="iconBank" class="iconbank"></div><p class="small">アイコンを選択後、盤面をクリックすると配置できます。</p></section>
+<section><h3>アイコン一覧</h3><button id="addPreset">＋ プリセット</button><button id="uploadIcon">画像追加</button><input type="file" id="iconFile" accept="image/*" class="hidden"></div><div id="iconBank" class="iconbank"></div><p class="small">アイコンを選択後、盤面をクリックすると配置できます。</p></section>
 <section>
 <h3>選択中のアイコン・駒</h3>
 <div id="selectionInfo" class="small">アイコンを選択してください。</div>
@@ -147,6 +147,20 @@ h1{font-size:18px;margin:0}header .spacer{flex:1}.status{font-size:12px;color:va
       <button id="diceButton">🎲 ダイス</button>
       <button id="choiceButton">choice</button>
     </div>
+    
+<div id="diceMenu" style="display:none; border:1px solid #ccc; border-radius:10px; padding:12px; margin-top:8px;">
+  <strong>🎲 ダイスを選択</strong>
+  <div class="row" style="flex-wrap:wrap; margin-top:10px;">
+    <button type="button" class="dice-option" data-dice="1d3">1D3</button>
+    <button type="button" class="dice-option" data-dice="1d4">1D4</button>
+    <button type="button" class="dice-option" data-dice="1d6">1D6</button>
+    <button type="button" class="dice-option" data-dice="1d10">1D10</button>
+    <button type="button" class="dice-option" data-dice="1d20">1D20</button>
+    <button type="button" class="dice-option" data-dice="1d100">1D100</button>
+    <button type="button" class="dice-option" data-dice="2d6">2D6</button>
+  </div>
+</div>
+
   </div>
 </aside>
 </div>
@@ -563,6 +577,23 @@ $("charts").addEventListener("click",e=>{
   }
 });
 $("sendChat").addEventListener("click",sendChat);
+  
+// ダイスメニューを開閉する
+$("diceButton").addEventListener("click",()=>{
+  const menu=$("diceMenu");
+  menu.style.display=
+    menu.style.display==="none"?"block":"none";
+});
+
+// 選んだダイスを自動でチャット送信する
+document.querySelectorAll(".dice-option").forEach(button=>{
+  button.addEventListener("click",()=>{
+    $("chatInput").value=button.dataset.dice;
+    $("diceMenu").style.display="none";
+    sendChat();
+  });
+});
+
 $("charts").addEventListener("change",e=>{const title=e.target.closest("[data-title]");if(title)mutate(()=>{const c=state.charts.find(c=>c.id===title.dataset.title);if(c)c.title=title.value})});
 $("chartList").onclick=e=>{const b=e.target.closest("[data-chart]");if(b){activeChart=b.dataset.chart;if(layout==="multi")layout="single";render()}};
 $("iconBank").onclick=e=>{const b=e.target.closest("[data-icon]");if(b){selectedIcon=b.dataset.icon;render();$("selectionInfo").textContent="配置するアイコン："+(state.icons.find(i=>i.id===selectedIcon)?.name||"")}};
