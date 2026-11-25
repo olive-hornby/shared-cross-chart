@@ -237,20 +237,34 @@ textarea{min-height:76px;resize:vertical}
     transparent
   );
 }
+/* テーマ共通：背景色はチャート本体に合わせる */
+.chart-title-area,
+.chart-head{
+  background:transparent;
+}
+
+/* スタンダード */
+.theme-standard .chart-title{
+  color:#30384a;
+}
+
+.theme-standard .chart-title-line{
+  background:linear-gradient(
+    to right,
+    transparent,
+    #9aa5c5,
+    transparent
+  );
+}
+
 /* クラシック */
-.chart-title-area.theme-classic{
-  background:#f4eee2;
-  border-radius:8px;
-  padding:16px 10px 12px;
+.theme-classic .chart-title{
+  color:#665039;
+  font-family:serif;
 }
 
 .theme-classic .chart-kicker{
   color:#a18455;
-}
-
-.theme-classic .chart-title{
-  color:#665039;
-  font-family:serif;
 }
 
 .theme-classic .chart-title-line{
@@ -263,19 +277,13 @@ textarea{min-height:76px;resize:vertical}
 }
 
 /* ミステリアス */
-.chart-title-area.theme-mystery{
-  background:#25263b;
-  border-radius:8px;
-  padding:16px 10px 12px;
+.theme-mystery .chart-title{
+  color:#66558f;
+  font-family:serif;
 }
 
 .theme-mystery .chart-kicker{
-  color:#aaa0d5;
-}
-
-.theme-mystery .chart-title{
-  color:#e4dcff;
-  font-family:serif;
+  color:#8273bb;
 }
 
 .theme-mystery .chart-title-line{
@@ -288,18 +296,12 @@ textarea{min-height:76px;resize:vertical}
 }
 
 /* ナチュラル */
-.chart-title-area.theme-natural{
-  background:#edf1e8;
-  border-radius:8px;
-  padding:16px 10px 12px;
+.theme-natural .chart-title{
+  color:#435a43;
 }
 
 .theme-natural .chart-kicker{
   color:#7c9270;
-}
-
-.theme-natural .chart-title{
-  color:#435a43;
 }
 
 .theme-natural .chart-title-line{
