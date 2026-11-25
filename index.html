@@ -1062,7 +1062,7 @@ questionRef=ref(database,"roomQuestions/"+hash);
   url.searchParams.set("room",room);
   history.replaceState({}, "", url);
 
-   // 質問ルームの受信
+  // 質問ルームの受信
 if(questionUnsubscribe)questionUnsubscribe();
 
 questionUnsubscribe=onValue(questionRef,snap=>{
@@ -1072,7 +1072,12 @@ questionUnsubscribe=onValue(questionRef,snap=>{
     currentQuestion:null
   };
 
+  console.log("質問データ受信成功",questionData);
   renderQuestionRoom();
+
+},error=>{
+  console.error("質問ルーム受信エラー",error);
+  alert("質問ルームの接続エラー："+error.message);
 });
    
   // 盤面の受信
