@@ -848,6 +848,7 @@ const defaultState = () => ({charts:[{id:uid(),title:"チャート 1",top:"好�
 function uid(){return Math.random().toString(36).slice(2,10)+Date.now().toString(36)}
 let state=defaultState(), selectedIcon=null, selectedMarker=null, activeChart=null, layout="multi", dbRef=null, unsubscribe=null, demo=false, applyingRemote=false, saveTimer=null;
 let chatRef=null, chatUnsubscribe=null, chatItems=[];
+let questionRef=null, questionUnsubscribe=null, questionData=null;
 const colors=["#dce8ff","#f9dfdf","#dff2e4","#fff0cf","#eee2ff","#d9f2f1"];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function validConfig(){return firebaseConfig.apiKey!=="YOUR_API_KEY" && (firebaseConfig.databaseURL.includes("firebaseio.com") || firebaseConfig.databaseURL.includes(".firebasedatabase.app"))}
@@ -944,6 +945,85 @@ function axisEditor(id){const c=state.charts.find(x=>x.id===id);modal("軸ラベ
   }));
 }
 
+  // あらかじめ用意しておく質問
+const preparedQuestions = [
+  {id:"q01",text:"自分の性格を一言で表すなら？"},
+  {id:"q02",text:"今までの人生で一番大切にしているものは？"},
+  {id:"q03",text:"自分の好きなところと嫌いなところは？"},
+  {id:"q04",text:"誰にも言っていない小さな秘密は？"},
+  {id:"q05",text:"人生で一番後悔していることは？"},
+  {id:"q06",text:"大切な人に言われて嬉しかった言葉は？"},
+  {id:"q07",text:"自分にとって理想の休日とは？"},
+  {id:"q08",text:"絶対に譲れないこだわりは？"},
+  {id:"q09",text:"自分が変わったと思う出来事は？"},
+  {id:"q10",text:"今、一番会いたい人は誰？"}
+];
+  // 次の質問を引く
+async function drawNextQuestion(){
+  if(!questionData)return;
+
+  const questions=[
+    ...preparedQuestions,
+    ...(questionData.questions||[])
+  ];
+
+  const history=questionData.history||[];
+  const usedIds=history
+    .map(item=>item.questionId)
+    .filter(Boolean);
+
+  const remaining=questions.filter(q=>!usedIds.includes(q.id));
+
+  if(remaining.length===0){
+    questionData.currentQuestion={
+      text:"用意された質問は出題し終わりました。",
+      finished:true
+    };
+    await set(questionRef,questionData);
+    return;
+  }
+
+  const selected=remaining[
+    Math.floor(Math.random()*remaining.length)
+  ];
+
+  const nextData={
+    ...questionData,
+    currentQuestion:{
+      id:selected.id,
+      text:selected.text
+    },
+    history:[
+      ...history,
+      {
+        questionId:selected.id,
+        question:selected.text,
+        answers:[]
+      }
+    ]
+  };
+
+  await set(questionRef,nextData);
+}
+  // 質問ルームの表示
+function renderQuestionRoom(){
+  const data=questionData||{};
+  const current=data.currentQuestion;
+
+  $("questionText").textContent=
+    current?.text||"まだ質問はありません。";
+
+  const history=Array.isArray(data.history)?data.history:[];
+
+  $("questionHistory").innerHTML=
+    history.length
+      ? history.slice().reverse().map(item=>`
+          <div style="padding:10px; border-bottom:1px solid #ddd;">
+            <strong>${esc(item.question||"")}</strong>
+          </div>
+        `).join("")
+      : '<p class="small">まだ履歴はありません。</p>';
+}
 async function join(){
  const room=$("roomId").value.trim(), password=$("roomPassword").value;
  if(!room||!password){$("gateError").textContent="ルームIDとパスワードを入力してください。";return}
@@ -959,6 +1039,8 @@ async function join(){
 
   // チャットの接続
   chatRef=ref(database,"roomChats/"+hash);
+   // 質問ルームの接続
+questionRef=ref(database,"roomQuestions/"+hash);
   if(chatUnsubscribe)chatUnsubscribe();
   chatItems=[];
 
@@ -980,6 +1062,19 @@ async function join(){
   url.searchParams.set("room",room);
   history.replaceState({}, "", url);
 
+   // 質問ルームの受信
+if(questionUnsubscribe)questionUnsubscribe();
+
+questionUnsubscribe=onValue(questionRef,snap=>{
+  questionData=snap.exists()?snap.val():{
+    questions:[],
+    history:[],
+    currentQuestion:null
+  };
+
+  renderQuestionRoom();
+});
+   
   // 盤面の受信
   unsubscribe=onValue(dbRef,snap=>{
     applyingRemote=true;
@@ -1322,6 +1417,11 @@ $("showQuestionPage").addEventListener("click",()=>{
 
   $("showChartPage").classList.remove("primary");
   $("showQuestionPage").classList.add("primary");
+});
+
+  // 質問を引くボタン
+$("drawQuestion").addEventListener("click",()=>{
+  drawNextQuestion();
 });
   
 // ダイスメニューを開閉する
