@@ -562,10 +562,7 @@ $("charts").addEventListener("click",e=>{
     });
   }
 });
-$("sendChat").addEventListener("click",()=>{
-  alert("送信ボタンは反応しています！");
-  sendChat();
-});
+$("sendChat").addEventListener("click",sendChat);
 $("charts").addEventListener("change",e=>{const title=e.target.closest("[data-title]");if(title)mutate(()=>{const c=state.charts.find(c=>c.id===title.dataset.title);if(c)c.title=title.value})});
 $("chartList").onclick=e=>{const b=e.target.closest("[data-chart]");if(b){activeChart=b.dataset.chart;if(layout==="multi")layout="single";render()}};
 $("iconBank").onclick=e=>{const b=e.target.closest("[data-icon]");if(b){selectedIcon=b.dataset.icon;render();$("selectionInfo").textContent="配置するアイコン："+(state.icons.find(i=>i.id===selectedIcon)?.name||"")}};
