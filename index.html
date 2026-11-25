@@ -480,7 +480,7 @@ textarea{min-height:76px;resize:vertical}
 <!-- 上部メニュー -->
 <div id="workspaceMenu">
   <div class="row">
-    <button id="menuToggle" type="button">☰ メニューを開く</button>
+    <button id="menuToggle" type="button">☰ メニューを閉じる</button>
   </div>
 
   <aside id="menuContents" class="panel sidebar">
@@ -1003,6 +1003,15 @@ $("charts").addEventListener("click",e=>{
   }
 });
 $("sendChat").addEventListener("click",sendChat);
+$("menuToggle").addEventListener("click",()=>{
+  const menu=$("menuContents");
+  const isHidden=menu.classList.toggle("hidden");
+
+  $("menuToggle").textContent=
+    isHidden
+      ?"☰ メニューを開く"
+      :"☰ メニューを閉じる";
+});
   
 // ダイスメニューを開閉する
 $("diceButton").addEventListener("click",()=>{
