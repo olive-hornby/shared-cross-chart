@@ -1200,23 +1200,54 @@ const auth=getAuth(app);
   url.searchParams.set("room",room);
   history.replaceState({}, "", url);
 
-  // 質問ルームの受信
-  if(questionUnsubscribe)questionUnsubscribe();
+  
+// 質問ルームの受信
+if(questionUnsubscribe)questionUnsubscribe();
 
-  questionUnsubscribe=onValue(questionRef,snap=>{
-   questionData=snap.exists()?snap.val():{
-    questions:[],
-    history:[],
-    currentQuestion:null
-   };
+questionUnsubscribe=onValue(questionRef,snap=>{
+  if(snap.exists()){
+    const raw=snap.val();
 
-   console.log("質問データ受信成功",questionData);
-   renderQuestionRoom();
+    // 新形式のデータならそのまま読み込む
+    if(
+      Array.isArray(raw.categories) &&
+      Array.isArray(raw.questions) &&
+      raw.answers
+    ){
+      questionData=raw;
+    }else{
+      // 古い形式の質問は残し、回答はテストデータとして引き継がない
+      const oldQuestions=Array.isArray(raw.questions)
+        ?raw.questions
+        :[];
 
-  },error=>{
-   console.error("質問ルーム受信エラー",error);
-   alert("質問ルームの接続エラー："+error.message);
-  });
+      questionData={
+        categories:preparedCategories,
+        questions:[
+          ...preparedQuestions,
+          ...oldQuestions.map(q=>({
+            ...q,
+            categoryId:q.categoryId||"uncategorized"
+          }))
+        ],
+        answers:{}
+      };
+    }
+  }else{
+    // 初めて質問ルームを使う場合
+    questionData={
+      categories:preparedCategories,
+      questions:preparedQuestions,
+      answers:{}
+    };
+  }
+
+  console.log("質問データ受信成功",questionData);
+  renderQuestionRoom();
+},error=>{
+  console.error("質問データ受信エラー",error);
+});
+
 
   // 盤面の受信
   if(unsubscribe)unsubscribe();
