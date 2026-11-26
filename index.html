@@ -1040,29 +1040,24 @@ function renderQuestionRoom(){
       <details class="question-category">
         
 
+
 <summary>
   <strong>${escapeHTML(category.name)}</strong>
   <span class="small">
     （回答済み ${
-      categoryQuestions.reduce((total, question)=>{
+      categoryQuestions.filter(question=>{
         const questionAnswers=Array.isArray(answers[question.id])
           ?answers[question.id]
           :[];
 
-        const myIconIds=new Set(
-          questionAnswers
-            .filter(answer=>answer.userId===currentUserId)
-            .map(answer=>answer.iconId)
+        return questionAnswers.some(
+          answer=>answer.userId===currentUserId
         );
-
-        return total+myIconIds.size;
-      },0)
-    } / ${
-      categoryQuestions.length *
-      (Array.isArray(state.icons)?state.icons.length:0)
-    }）
+      }).length
+    } / ${categoryQuestions.length}）
   </span>
 </summary>
+
 
 
 <div class="category-actions">
