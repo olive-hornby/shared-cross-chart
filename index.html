@@ -804,33 +804,31 @@ textarea{min-height:76px;resize:vertical}
 </div>
 
 </div>
-  <div id="questionPage" class="hidden">
+
+<div id="questionPage" class="hidden">
 
   <div class="panel">
     <h2>質問ルーム</h2>
-    <p class="small">同じシナリオを経験したキャラクターたちを、質問を通して深掘りしよう。</p>
+    <p class="small">
+      同じシナリオを経験したキャラクターたちを、質問を通して深掘りしよう。
+    </p>
 
-    <div id="currentQuestion" style="margin:20px 0; padding:24px; border:1px solid #ccc; border-radius:12px; text-align:center;">
-      <p class="small">現在の質問</p>
-      <h3 id="questionText">まだ質問はありません。</h3>
+    <div class="row" style="flex-wrap:wrap; margin:20px 0;">
+      <button id="addCategory" class="primary">
+        ＋ カテゴリを追加
+      </button>
+      <button id="addQuestion">
+        ＋ 質問を追加
+      </button>
     </div>
 
-    <div class="row" style="flex-wrap:wrap;">
-      <button id="drawQuestion" class="primary">次の質問を引く</button>
-      <button id="addQuestion">質問を追加して回答する</button>
-    </div>
-
-    <div id="answerArea" style="margin-top:20px;"></div>
-  </div>
-
-  <div class="panel" style="margin-top:16px;">
-    <h3>質問・回答の履歴</h3>
-    <div id="questionHistory">
-      <p class="small">まだ履歴はありません。</p>
+    <div id="questionCategories">
+      <p class="small">質問を読み込んでいます。</p>
     </div>
   </div>
 
 </div>
+
 </main>
 <div id="modalRoot"></div>
 <script type="module">
@@ -1046,7 +1044,7 @@ async function drawNextQuestion(){
 
   await set(questionRef,nextData);
 }
-  // 質問ルームの表示
+
 // 質問ルームの表示
 function renderQuestionRoom(){
   const data=questionData||{};
