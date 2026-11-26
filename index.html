@@ -1037,10 +1037,21 @@ function renderQuestionRoom(){
 
     return `
       <details class="question-category">
-        <summary>
-          <strong>${escapeHTML(category.name)}</strong>
-          <span class="small">（${categoryQuestions.length}問）</span>
-        </summary>
+        
+<summary>
+  <strong>${escapeHTML(category.name)}</strong>
+  <span class="small">（${categoryQuestions.length}問）</span>
+</summary>
+
+<div class="category-actions">
+  <button data-edit-category="${escapeHTML(category.id)}">
+    編集
+  </button>
+  <button data-delete-category="${escapeHTML(category.id)}">
+    削除
+  </button>
+</div>
+
 
         <div class="question-list">
           ${categoryQuestions.map(question=>{
