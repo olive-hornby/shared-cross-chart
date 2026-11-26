@@ -1643,6 +1643,7 @@ $("showQuestionPage").addEventListener("click",()=>{
 
 // カテゴリを追加
 
+
 $("addCategory").addEventListener("click",async()=>{
   const name=prompt("追加するカテゴリ名を入力してください。");
   if(!name||!name.trim())return;
@@ -1660,10 +1661,16 @@ $("addCategory").addEventListener("click",async()=>{
       name:name.trim()
     });
 
-    await set(questionRef,{
+    const nextData={
       ...data,
       categories
-    });
+    };
+
+    await set(questionRef,nextData);
+
+    // 保存したデータを画面にもすぐ反映する
+    questionData=nextData;
+    renderQuestionRoom();
 
     alert("カテゴリを追加しました！");
   }catch(error){
@@ -1671,6 +1678,7 @@ $("addCategory").addEventListener("click",async()=>{
     alert("カテゴリを追加できませんでした。\n"+error.message);
   }
 });
+
 
 
 // 質問を追加
