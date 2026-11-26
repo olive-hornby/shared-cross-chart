@@ -1201,12 +1201,11 @@ questionUnsubscribe=onValue(questionRef,snap=>{
     const raw=snap.val();
 
     // 新形式のデータならそのまま読み込む
-    if(
-      Array.isArray(raw.categories) &&
-      Array.isArray(raw.questions) &&
-      raw.answers
-    ){
-      questionData=raw;
+if(
+  Array.isArray(raw.categories) &&
+  Array.isArray(raw.questions)
+){
+  questionData=raw;
     }else{
       // 古い形式の質問は残し、回答はテストデータとして引き継がない
       const oldQuestions=Array.isArray(raw.questions)
