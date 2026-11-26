@@ -1642,27 +1642,36 @@ $("showQuestionPage").addEventListener("click",()=>{
 
 
 // カテゴリを追加
+
 $("addCategory").addEventListener("click",async()=>{
   const name=prompt("追加するカテゴリ名を入力してください。");
   if(!name||!name.trim())return;
 
-  const data=questionData||{
-    categories:preparedCategories,
-    questions:preparedQuestions,
-    answers:{}
-  };
+  try{
+    const data=questionData||{
+      categories:preparedCategories,
+      questions:preparedQuestions,
+      answers:{}
+    };
 
-  const categories=[...data.categories];
-  categories.push({
-    id:"category_"+uid(),
-    name:name.trim()
-  });
+    const categories=[...(data.categories||preparedCategories)];
+    categories.push({
+      id:"category_"+uid(),
+      name:name.trim()
+    });
 
-  await set(questionRef,{
-    ...data,
-    categories
-  });
+    await set(questionRef,{
+      ...data,
+      categories
+    });
+
+    alert("カテゴリを追加しました！");
+  }catch(error){
+    console.error("カテゴリ追加エラー",error);
+    alert("カテゴリを追加できませんでした。\n"+error.message);
+  }
 });
+
 
 // 質問を追加
 $("addQuestion").addEventListener("click",async()=>{
