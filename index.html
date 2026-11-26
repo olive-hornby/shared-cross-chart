@@ -984,66 +984,34 @@ function editSelected(){
   }));
 }
 
-  // あらかじめ用意しておく質問
-const preparedQuestions = [
-  {id:"q01",text:"自分の性格を一言で表すなら？"},
-  {id:"q02",text:"今までの人生で一番大切にしているものは？"},
-  {id:"q03",text:"自分の好きなところと嫌いなところは？"},
-  {id:"q04",text:"誰にも言っていない小さな秘密は？"},
-  {id:"q05",text:"人生で一番後悔していることは？"},
-  {id:"q06",text:"大切な人に言われて嬉しかった言葉は？"},
-  {id:"q07",text:"自分にとって理想の休日とは？"},
-  {id:"q08",text:"絶対に譲れないこだわりは？"},
-  {id:"q09",text:"自分が変わったと思う出来事は？"},
-  {id:"q10",text:"今、一番会いたい人は誰？"}
+ 
+// あらかじめ用意しておくカテゴリ
+const preparedCategories = [
+  {id:"self", name:"自分について"},
+  {id:"past", name:"過去・思い出"},
+  {id:"daily", name:"好み・日常"},
+  {id:"secret", name:"秘密・本音"},
+  {id:"relationship", name:"人間関係"},
+  {id:"party", name:"自陣（複数PC）向け"},
+  {id:"pair", name:"うちよそ向け"},
+  {id:"uncategorized", name:"未分類"}
 ];
-  // 次の質問を引く
-async function drawNextQuestion(){
-  if(!questionData)return;
 
-  const questions=[
-    ...preparedQuestions,
-    ...(questionData.questions||[])
-  ];
+// あらかじめ用意しておく質問
+const preparedQuestions = [
+  {id:"q01", categoryId:"self", text:"自分の性格を一言で表すなら？"},
+  {id:"q02", categoryId:"relationship", text:"今までの人生で一番大切にしているものは？"},
+  {id:"q03", categoryId:"self", text:"自分の好きなところと嫌いなところは？"},
+  {id:"q04", categoryId:"secret", text:"誰にも言っていない小さな秘密は？"},
+  {id:"q05", categoryId:"past", text:"人生で一番後悔していることは？"},
+  {id:"q06", categoryId:"relationship", text:"大切な人に言われて嬉しかった言葉は？"},
+  {id:"q07", categoryId:"daily", text:"自分にとって理想の休日とは？"},
+  {id:"q08", categoryId:"self", text:"絶対に譲れないこだわりは？"},
+  {id:"q09", categoryId:"past", text:"自分が変わったと思う出来事は？"},
+  {id:"q10", categoryId:"relationship", text:"今、一番会いたい人は誰？"}
+];
 
-  const history=questionData.history||[];
-  const usedIds=history
-    .map(item=>item.questionId)
-    .filter(Boolean);
 
-  const remaining=questions.filter(q=>!usedIds.includes(q.id));
-
-  if(remaining.length===0){
-    questionData.currentQuestion={
-      text:"用意された質問は出題し終わりました。",
-      finished:true
-    };
-    await set(questionRef,questionData);
-    return;
-  }
-
-  const selected=remaining[
-    Math.floor(Math.random()*remaining.length)
-  ];
-
-  const nextData={
-    ...questionData,
-    currentQuestion:{
-      id:selected.id,
-      text:selected.text
-    },
-    history:[
-      ...history,
-      {
-        questionId:selected.id,
-        question:selected.text,
-        answers:[]
-      }
-    ]
-  };
-
-  await set(questionRef,nextData);
-}
 
 // 質問ルームの表示
 function renderQuestionRoom(){
