@@ -783,6 +783,81 @@ textarea{min-height:76px;resize:vertical}
 }
 
   
+/* 質問ルーム：キャラクターの回答 */
+.question-answers{
+  padding:10px 12px 16px;
+}
+
+.answer-item{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  margin:12px 0;
+}
+
+.answer-avatar{
+  flex:0 0 44px;
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  border:2px solid white;
+  box-shadow:0 1px 4px #0002;
+  font-weight:700;
+  color:#29365e;
+}
+
+.answer-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.answer-bubble{
+  position:relative;
+  flex:1;
+  min-width:0;
+  padding:11px 14px;
+  background:#f0f3fa;
+  border-radius:4px 14px 14px 14px;
+  overflow-wrap:anywhere;
+}
+
+.answer-bubble::before{
+  content:"";
+  position:absolute;
+  top:12px;
+  left:-7px;
+  border-top:7px solid transparent;
+  border-bottom:7px solid transparent;
+  border-right:8px solid #f0f3fa;
+}
+
+.answer-bubble strong{
+  font-size:13px;
+  color:#465779;
+}
+
+.answer-bubble p{
+  margin:6px 0;
+  font-size:14px;
+  line-height:1.7;
+  white-space:normal;
+}
+
+.answer-bubble button{
+  display:block;
+  margin-left:auto;
+  padding:4px 8px;
+  font-size:11px;
+  background:transparent;
+  color:var(--muted);
+}
+
+  
 </style>
 
 </head>
@@ -1192,18 +1267,40 @@ function renderQuestionRoom(){
   ${
     questionAnswers.length
       ?questionAnswers.map(answer=>`
-        <div class="answer-item">
-          <strong>${escapeHTML(answer.iconName||"名前なし")}</strong>
-          <p>${escapeHTML(answer.text||"").replace(/\n/g,"<br>")}</p>
+        
+<div class="answer-item">
+  ${
+    (()=>{
+      const icon=state.icons.find(item=>item.id===answer.iconId);
+      return `
+        <div
+          class="answer-avatar"
+          style="background:${escapeHTML(icon?.color||colors[0])}"
+        >
           ${
-            answer.userId===currentUserId
-              ?`<button data-edit-answer="${escapeHTML(answer.id)}"
-                  data-question-id="${escapeHTML(question.id)}">
-                  回答を編集
-                </button>`
-              :""
+            icon?.image
+              ?`<img src="${escapeHTML(icon.image)}">`
+              :escapeHTML(icon?.initial||icon?.name?.slice(0,1)||"？")
           }
         </div>
+      `;
+    })()
+  }
+
+  <div class="answer-bubble">
+    <strong>${escapeHTML(answer.iconName||"名前なし")}</strong>
+    <p>${escapeHTML(answer.text||"").replace(/\n/g,"<br>")}</p>
+    ${
+      answer.userId===currentUserId
+        ?`<button data-edit-answer="${escapeHTML(answer.id)}"
+            data-question-id="${escapeHTML(question.id)}">
+            回答を編集
+          </button>`
+        :""
+    }
+  </div>
+</div>
+
       `).join("")
       :'<p class="small">まだ回答はありません。</p>'
   }
