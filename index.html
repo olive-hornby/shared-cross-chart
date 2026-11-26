@@ -860,6 +860,33 @@ textarea{min-height:76px;resize:vertical}
 }
 
   
+/* 質問ルーム：編集・削除ボタン */
+.category-actions,
+.question-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:5px;
+  padding:3px 10px;
+}
+
+.category-actions button,
+.question-actions button{
+  width:30px;
+  height:30px;
+  padding:0;
+  border-radius:7px;
+  background:transparent;
+  font-size:14px;
+  opacity:.65;
+}
+
+.category-actions button:hover,
+.question-actions button:hover{
+  background:#e9ecf5;
+  opacity:1;
+}
+
+  
 </style>
 
 </head>
@@ -1226,14 +1253,21 @@ function renderQuestionRoom(){
 
 
 
+
 <div class="category-actions">
-  <button data-edit-category="${escapeHTML(category.id)}">
-    編集
-  </button>
-  <button data-delete-category="${escapeHTML(category.id)}">
-    削除
-  </button>
+  <button
+    data-edit-category="${escapeHTML(category.id)}"
+    title="カテゴリを編集"
+    aria-label="カテゴリを編集"
+  >✏️</button>
+
+  <button
+    data-delete-category="${escapeHTML(category.id)}"
+    title="カテゴリを削除"
+    aria-label="カテゴリを削除"
+  >🗑️</button>
 </div>
+
 
 
         <div class="question-list">
@@ -1254,14 +1288,21 @@ function renderQuestionRoom(){
 </summary>
 
 
+
 <div class="question-actions">
-  <button data-edit-question="${escapeHTML(question.id)}">
-    編集
-  </button>
-  <button data-delete-question="${escapeHTML(question.id)}">
-    削除
-  </button>
+  <button
+    data-edit-question="${escapeHTML(question.id)}"
+    title="質問を編集"
+    aria-label="質問を編集"
+  >✏️</button>
+
+  <button
+    data-delete-question="${escapeHTML(question.id)}"
+    title="質問を削除"
+    aria-label="質問を削除"
+  >🗑️</button>
 </div>
+
 
 
                 
