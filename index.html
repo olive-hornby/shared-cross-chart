@@ -1640,48 +1640,72 @@ $("showQuestionPage").addEventListener("click",()=>{
   $("showQuestionPage").classList.add("primary");
 });
 
- // 質問を引くボタン
-$("drawQuestion").addEventListener("click",()=>{
-  drawNextQuestion();
-});
-  // 質問を追加するボタン
-$("addQuestion").addEventListener("click",async()=>{
-  const text=prompt("追加したい質問を入力してください。");
 
-  if(!text||!text.trim())return;
-
-  const newQuestion={
-    id:"user_"+uid(),
-    text:text.trim()
-  };
+// カテゴリを追加
+$("addCategory").addEventListener("click",async()=>{
+  const name=prompt("追加するカテゴリ名を入力してください。");
+  if(!name||!name.trim())return;
 
   const data=questionData||{
-    questions:[],
-    history:[],
-    currentQuestion:null
+    categories:preparedCategories,
+    questions:preparedQuestions,
+    answers:{}
   };
 
-  const questions=Array.isArray(data.questions)
-    ?data.questions:[];
-  const history=Array.isArray(data.history)
-    ?data.history:[];
+  const categories=[...data.categories];
+  categories.push({
+    id:"category_"+uid(),
+    name:name.trim()
+  });
 
-  const nextData={
+  await set(questionRef,{
     ...data,
-    questions:[...questions,newQuestion],
-    currentQuestion:newQuestion,
-    history:[
-      ...history,
-      {
-        questionId:newQuestion.id,
-        question:newQuestion.text,
-        answers:[]
-      }
-    ]
+    categories
+  });
+});
+
+// 質問を追加
+$("addQuestion").addEventListener("click",async()=>{
+  const text=prompt("追加する質問を入力してください。");
+  if(!text||!text.trim())return;
+
+  const data=questionData||{
+    categories:preparedCategories,
+    questions:preparedQuestions,
+    answers:{}
   };
 
-  await set(questionRef,nextData);
+  const categories=data.categories||preparedCategories;
+
+  const categoryList=categories
+    .map((category,index)=>`${index+1}: ${category.name}`)
+    .join("\n");
+
+  const choice=prompt(
+    "質問を追加するカテゴリの番号を入力してください。\n\n"+categoryList
+  );
+
+  if(choice===null)return;
+
+  const categoryIndex=Number(choice)-1;
+  if(!Number.isInteger(categoryIndex)||!categories[categoryIndex]){
+    alert("カテゴリの番号が正しくありません。");
+    return;
+  }
+
+  const questions=[...data.questions];
+  questions.push({
+    id:"question_"+uid(),
+    categoryId:categories[categoryIndex].id,
+    text:text.trim()
+  });
+
+  await set(questionRef,{
+    ...data,
+    questions
+  });
 });
+
   // 回答用アイコンの選択
 $("answerArea").addEventListener("click",e=>{
   const button=e.target.closest("[data-answer-icon]");
