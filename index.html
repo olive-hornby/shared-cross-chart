@@ -1205,6 +1205,73 @@ $("questionCategories").addEventListener("click",async e=>{
 });
 
 
+ // 質問の編集・削除
+$("questionCategories").addEventListener("click",async e=>{
+  const editButton=e.target.closest("[data-edit-question]");
+  const deleteButton=e.target.closest("[data-delete-question]");
+
+  if(!editButton&&!deleteButton)return;
+
+  const data=questionData||{};
+  const questions=[...(data.questions||[])];
+  const questionId=editButton
+    ?editButton.dataset.editQuestion
+    :deleteButton.dataset.deleteQuestion;
+
+  const question=questions.find(item=>item.id===questionId);
+  if(!question)return;
+
+  // 質問文を編集
+  if(editButton){
+    const newText=prompt(
+      "新しい質問文を入力してください。",
+      question.text
+    );
+
+    if(newText===null||!newText.trim())return;
+
+    question.text=newText.trim();
+
+    const nextData={
+      ...data,
+      questions
+    };
+
+    await set(questionRef,nextData);
+    questionData=nextData;
+    renderQuestionRoom();
+
+    alert("質問文を変更しました！");
+    return;
+  }
+
+  // 質問を削除
+  if(deleteButton){
+    if(!confirm(
+      `「${question.text}」を削除しますか？\n\nこの質問への回答もすべて削除されます。`
+    ))return;
+
+    const nextQuestions=questions.filter(
+      item=>item.id!==questionId
+    );
+
+    const nextAnswers={...(data.answers||{})};
+    delete nextAnswers[questionId];
+
+    const nextData={
+      ...data,
+      questions:nextQuestions,
+      answers:nextAnswers
+    };
+
+    await set(questionRef,nextData);
+    questionData=nextData;
+    renderQuestionRoom();
+
+    alert("質問と回答を削除しました！");
+  }
+});
+
 
 async function join(){
  const room=$("roomId").value.trim();
