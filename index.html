@@ -1043,19 +1043,7 @@ function renderQuestionRoom(){
 
 <summary>
   <strong>${escapeHTML(category.name)}</strong>
-  <span class="small">
-    （回答済み ${
-      categoryQuestions.filter(question=>{
-        const questionAnswers=Array.isArray(answers[question.id])
-          ?answers[question.id]
-          :[];
-
-        return questionAnswers.some(
-          answer=>answer.userId===currentUserId
-        );
-      }).length
-    } / ${categoryQuestions.length}）
-  </span>
+  <span class="small">（${categoryQuestions.length}問）</span>
 </summary>
 
 
