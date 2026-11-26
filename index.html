@@ -1099,6 +1099,101 @@ function renderQuestionRoom(){
   }
 }
 
+  
+ // カテゴリの編集・削除
+$("questionCategories").addEventListener("click",async e=>{
+  const editButton=e.target.closest("[data-edit-category]");
+  const deleteButton=e.target.closest("[data-delete-category]");
+
+  if(!editButton&&!deleteButton)return;
+
+  const data=questionData||{};
+  const categories=[...(data.categories||[])];
+  const questions=[...(data.questions||[])];
+
+  // カテゴリ名を編集
+  if(editButton){
+    const categoryId=editButton.dataset.editCategory;
+    const category=categories.find(item=>item.id===categoryId);
+    if(!category)return;
+
+    const newName=prompt("新しいカテゴリ名を入力してください。",category.name);
+    if(newName===null||!newName.trim())return;
+
+    category.name=newName.trim();
+
+    const nextData={
+      ...data,
+      categories
+    };
+
+    await set(questionRef,nextData);
+    questionData=nextData;
+    renderQuestionRoom();
+
+    alert("カテゴリ名を変更しました！");
+    return;
+  }
+
+  // カテゴリを削除
+  if(deleteButton){
+    const categoryId=deleteButton.dataset.deleteCategory;
+    const category=categories.find(item=>item.id===categoryId);
+    if(!category)return;
+
+    if(categoryId==="uncategorized"){
+      alert("「未分類」は削除できません。");
+      return;
+    }
+
+    if(!confirm(
+      `「${category.name}」を削除しますか？\n\nこのカテゴリの質問は削除されず、「未分類」に移動します。`
+    ))return;
+
+    // 未分類カテゴリがなければ作成
+    let uncategorized=categories.find(
+      item=>item.id==="uncategorized"
+    );
+
+    if(!uncategorized){
+      uncategorized={
+        id:"uncategorized",
+        name:"未分類"
+      };
+      categories.push(uncategorized);
+    }
+
+    // 削除対象カテゴリの質問を未分類へ移動
+    const nextQuestions=questions.map(question=>{
+      if(question.categoryId===categoryId){
+        return {
+          ...question,
+          categoryId:"uncategorized"
+        };
+      }
+      return question;
+    });
+
+    // カテゴリを削除
+    const nextCategories=categories.filter(
+      item=>item.id!==categoryId
+    );
+
+    const nextData={
+      ...data,
+      categories:nextCategories,
+      questions:nextQuestions
+    };
+
+    await set(questionRef,nextData);
+    questionData=nextData;
+    renderQuestionRoom();
+
+    alert("カテゴリを削除しました。質問は未分類に移動しました！");
+  }
+});
+
+
 
 async function join(){
  const room=$("roomId").value.trim();
