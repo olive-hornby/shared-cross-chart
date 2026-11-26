@@ -864,6 +864,7 @@ let state=defaultState(), selectedIcon=null, selectedMarker=null, activeChart=nu
 let chatRef=null, chatUnsubscribe=null, chatItems=[];
 let questionRef=null, questionUnsubscribe=null, questionData=null;
 let answerIconId=null;
+let selectedAnswerIcons={};
 let currentUserId=null;
 const colors=["#dce8ff","#f9dfdf","#dff2e4","#fff0cf","#eee2ff","#d9f2f1"];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -1957,118 +1958,151 @@ $("addQuestion").addEventListener("click",async()=>{
   });
 });
 
-  // 回答用アイコンの選択
-$("answerArea").addEventListener("click",e=>{
-  const button=e.target.closest("[data-answer-icon]");
-  if(!button)return;
 
-  answerIconId=button.dataset.answerIcon;
+ // 回答のアイコン選択・投稿・編集
+$("questionCategories").addEventListener("click",async e=>{
 
-  $("answerIconList").querySelectorAll("[data-answer-icon]")
-    .forEach(icon=>{
-      icon.style.outline=
-        icon.dataset.answerIcon===answerIconId
+  // キャラクターアイコンを選択
+  const iconButton=e.target.closest("[data-answer-icon]");
+
+  if(iconButton){
+    const questionId=iconButton.dataset.questionId;
+    const iconId=iconButton.dataset.answerIcon;
+
+    selectedAnswerIcons[questionId]=iconId;
+
+    const iconList=iconButton.closest(".answer-icon-list");
+
+    iconList.querySelectorAll("[data-answer-icon]").forEach(button=>{
+      button.style.outline=
+        button.dataset.answerIcon===iconId
           ?"3px solid #5577cc"
           :"none";
     });
+
+    const selectedText=$("questionCategories").querySelector(
+      `[data-selected-answer-icon="${questionId}"]`
+    );
+
+    const icon=state.icons.find(item=>item.id===iconId);
+
+    if(selectedText){
+      selectedText.textContent=`選択中：${icon?.name||"名前なし"}`;
+    }
+
+    return;
+  }
+
+  // 回答を投稿
+  const submitButton=e.target.closest("[data-submit-answer]");
+
+  if(submitButton){
+    const questionId=submitButton.dataset.submitAnswer;
+    const iconId=selectedAnswerIcons[questionId];
+
+    if(!iconId){
+      alert("キャラクターを選択してください。");
+      return;
+    }
+
+    const textArea=$("questionCategories").querySelector(
+      `[data-answer-text="${questionId}"]`
+    );
+
+    const answerText=textArea?.value.trim();
+
+    if(!answerText){
+      alert("回答を入力してください。");
+      return;
+    }
+
+    const data=questionData||{};
+    const answers={...(data.answers||{})};
+    const questionAnswers=Array.isArray(answers[questionId])
+      ?[...answers[questionId]]
+      :[];
+
+    const alreadyAnswered=questionAnswers.some(answer=>
+      answer.userId===currentUserId &&
+      answer.iconId===iconId
+    );
+
+    if(alreadyAnswered){
+      alert("このキャラクターでは回答済みです。");
+      return;
+    }
+
+    const icon=state.icons.find(item=>item.id===iconId);
+
+    questionAnswers.push({
+      id:uid(),
+      userId:currentUserId,
+      iconId:iconId,
+      iconName:icon?.name||"名前なし",
+      text:answerText
+    });
+
+    answers[questionId]=questionAnswers;
+
+    const nextData={
+      ...data,
+      answers
+    };
+
+    await set(questionRef,nextData);
+
+    questionData=nextData;
+    delete selectedAnswerIcons[questionId];
+
+    renderQuestionRoom();
+
+    alert("回答を投稿しました！");
+    return;
+  }
+
+  // 自分の回答を編集
+  const editButton=e.target.closest("[data-edit-answer]");
+
+  if(editButton){
+    const answerId=editButton.dataset.editAnswer;
+    const questionId=editButton.dataset.questionId;
+
+    const data=questionData||{};
+    const answers={...(data.answers||{})};
+
+    const questionAnswers=Array.isArray(answers[questionId])
+      ?[...answers[questionId]]
+      :[];
+
+    const answer=questionAnswers.find(item=>item.id===answerId);
+
+    if(!answer||answer.userId!==currentUserId){
+      alert("この回答は編集できません。");
+      return;
+    }
+
+    const newText=prompt("回答を編集してください。",answer.text||"");
+
+    if(newText===null||!newText.trim())return;
+
+    answer.text=newText.trim();
+    answers[questionId]=questionAnswers;
+
+    const nextData={
+      ...data,
+      answers
+    };
+
+    await set(questionRef,nextData);
+
+    questionData=nextData;
+    renderQuestionRoom();
+
+    alert("回答を編集しました！");
+  }
 });
-  // 回答を送信する
-$("answerArea").addEventListener("click",async e=>{
-  if(e.target.id!=="submitAnswer")return;
 
-  if(!answerIconId){
-    alert("回答するキャラクターを選んでください。");
-    return;
-  }
-
-  const answerText=$("answerText").value.trim();
-
-  if(!answerText){
-    alert("回答を入力してください。");
-    return;
-  }
-
-  const data=questionData||{};
-  const history=Array.isArray(data.history)?[...data.history]:[];
-  const current=data.currentQuestion;
-
-  if(!current)return;
-
-  const target=history.find(
-    item=>item.questionId===current.id
-  );
-
-  if(!target){
-    alert("質問の履歴が見つかりません。");
-    return;
-  }
-
-  const icon=state.icons.find(
-    item=>item.id===answerIconId
-  );
-
-  const answers=Array.isArray(target.answers)
-    ?[...target.answers]:[];
-
-   answers.push({
-    id:uid(),
-    userId:currentUserId,
-    iconId:answerIconId,
-    iconName:icon?.name||"名前なし",
-    text:answerText
-  });
-
-  target.answers=answers;
-
-  await set(questionRef,{
-    ...data,
-    history
-  });
-
-  answerIconId=null;
-});
-  // 自分の回答を編集する
-$("questionHistory").addEventListener("click",async e=>{
-  const button=e.target.closest("[data-edit-answer]");
-  if(!button)return;
-
-  const answerId=button.dataset.editAnswer;
-  const questionId=button.dataset.questionId;
-
-  const data=questionData||{};
-  const history=Array.isArray(data.history)?[...data.history]:[];
-
-  const target=history.find(
-    item=>item.questionId===questionId
-  );
-
-  if(!target)return;
-
-  const answer=(target.answers||[]).find(
-    item=>item.id===answerId
-  );
-
-  if(!answer||answer.userId!==currentUserId){
-    alert("この回答は編集できません。");
-    return;
-  }
-
-  const newText=prompt("回答を編集してください。",answer.text||"");
-
-  if(newText===null)return;
-
-  if(!newText.trim()){
-    alert("回答を空欄にはできません。");
-    return;
-  }
-
-  answer.text=newText.trim();
-
-  await set(questionRef,{
-    ...data,
-    history
-  });
-});
+  
   
 // ダイスメニューを開閉する
 $("diceButton").addEventListener("click",()=>{
