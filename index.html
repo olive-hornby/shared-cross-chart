@@ -1061,9 +1061,20 @@ function renderQuestionRoom(){
 
             return `
               <details class="question-item">
-                <summary>
-                  <strong>${escapeHTML(question.text)}</strong>
-                </summary>
+                
+<summary>
+  <strong>${escapeHTML(question.text)}</strong>
+</summary>
+
+<div class="question-actions">
+  <button data-edit-question="${escapeHTML(question.id)}">
+    編集
+  </button>
+  <button data-delete-question="${escapeHTML(question.id)}">
+    削除
+  </button>
+</div>
+
 
                 <div class="question-answers">
                   ${
