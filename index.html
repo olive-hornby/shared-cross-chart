@@ -1014,99 +1014,80 @@ const preparedQuestions = [
 
 
 // 質問ルームの表示
+
 function renderQuestionRoom(){
   const data=questionData||{};
-  const current=data.currentQuestion;
-  const finished=current?.finished===true;
+  const categories=Array.isArray(data.categories)?data.categories:[];
+  const questions=Array.isArray(data.questions)?data.questions:[];
+  const answers=data.answers||{};
 
-  $("questionText").textContent=
-    finished
-      ?"用意された質問は出題し終わりました。"
-      :current?.text||"まだ質問はありません。";
+  // HTMLに表示する文字を安全な形にする
+  const escapeHTML=value=>String(value??"").replace(/[&<>"']/g,char=>({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  }[char]));
 
-  // 終了時は質問を引くボタンを隠す
-  $("drawQuestion").classList.toggle("hidden",finished);
+  $("questionCategories").innerHTML=categories.map(category=>{
+    const categoryQuestions=questions.filter(
+      question=>question.categoryId===category.id
+    );
 
-  // 終了時は質問追加ボタンを表示
-  $("addQuestion").classList.toggle("hidden",!finished);
+    return `
+      <details class="question-category">
+        <summary>
+          <strong>${escapeHTML(category.name)}</strong>
+          <span class="small">（${categoryQuestions.length}問）</span>
+        </summary>
 
-    // 回答入力エリア
-  if(current&&!finished){
-    const icons=Array.isArray(state.icons)?state.icons:[];
+        <div class="question-list">
+          ${categoryQuestions.map(question=>{
+            const questionAnswers=Array.isArray(answers[question.id])
+              ?answers[question.id]
+              :[];
 
-    $("answerArea").innerHTML=`
-      <div style="border-top:1px solid #ddd; padding-top:16px;">
-        <h3>この質問に回答する</h3>
+            return `
+              <details class="question-item">
+                <summary>
+                  <strong>${escapeHTML(question.text)}</strong>
+                </summary>
 
-        <label>回答するキャラクター</label>
-        <div id="answerIconList" class="iconbank">
-          ${icons.map(icon=>`
-            <button type="button"
-              class="bank-icon"
-              data-answer-icon="${esc(icon.id)}"
-              title="${esc(icon.name)}"
-              style="background:${icon.color||colors[0]}">
-              ${icon.image
-                ?`<img src="${icon.image}">`
-                :esc(icon.initial||icon.name?.slice(0,1)||"？")}
-            </button>
-          `).join("")}
+                <div class="question-answers">
+                  ${
+                    questionAnswers.length
+                      ?questionAnswers.map(answer=>`
+                        <div class="answer-item">
+                          <strong>${escapeHTML(answer.iconName||"名前なし")}</strong>
+                          <p>${escapeHTML(answer.text||"").replace(/\n/g,"<br>")}</p>
+                          ${
+                            answer.userId===currentUserId
+                              ?`<button data-edit-answer="${escapeHTML(answer.id)}"
+                                  data-question-id="${escapeHTML(question.id)}">
+                                  回答を編集
+                                </button>`
+                              :""
+                          }
+                        </div>
+                      `).join("")
+                      :'<p class="small">まだ回答はありません。</p>'
+                  }
+                </div>
+              </details>
+            `;
+          }).join("")}
         </div>
-
-        <textarea id="answerText" rows="3"
-          placeholder="回答を入力してください。"
-          style="width:100%; margin-top:12px;"></textarea>
-
-        <button id="submitAnswer" class="primary" style="margin-top:8px;">
-          回答する
-        </button>
-      </div>
+      </details>
     `;
-  }else{
-    $("answerArea").innerHTML="";
+  }).join("");
+
+  if(!categories.length){
+    $("questionCategories").innerHTML=
+      '<p class="small">カテゴリがありません。</p>';
   }
-  const history=Array.isArray(data.history)?data.history:[];
-
-    $("questionHistory").innerHTML=
-    history.length
-      ?history.slice().reverse().map(item=>`
-          <div style="padding:14px; border-bottom:1px solid #ddd;">
-            <strong>${esc(item.question||"")}</strong>
-
-            <div style="margin-top:10px;">
-              ${(item.answers||[]).map(answer=>{
-                const icon=state.icons.find(i=>i.id===answer.iconId);
-
-                return `
-                  <div style="display:flex; align-items:flex-start; gap:10px; margin:10px 0;">
-                    <div style="width:40px; height:40px; flex-shrink:0; border-radius:50%; overflow:hidden; background:${icon?.color||colors[0]}; display:flex; align-items:center; justify-content:center;">
-                      ${icon?.image
-                        ?`<img src="${icon.image}" style="width:100%;height:100%;object-fit:cover;">`
-                        :esc(icon?.initial||icon?.name?.slice(0,1)||"？")}
-                    </div>
-
-                    <div>
-                      <strong>${esc(answer.iconName||"名前なし")}</strong>
-                      <p style="margin:4px 0;">${esc(answer.text||"")}</p>
-
-                      ${answer.userId===currentUserId
-                        ?`<button
-                            type="button"
-                            data-edit-answer="${esc(answer.id)}"
-                            data-question-id="${esc(item.questionId)}"
-                            style="margin-top:4px;">
-                            編集
-                          </button>`
-                        :""}
-                    </div>
-                  </div>
-                `;
-              }).join("")}
-            </div>
-          </div>
-        `).join("")
-      :'<p class="small">まだ履歴はありません。</p>';
 }
+
 
 async function join(){
  const room=$("roomId").value.trim();
