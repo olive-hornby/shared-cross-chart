@@ -1076,26 +1076,77 @@ function renderQuestionRoom(){
 </div>
 
 
-                <div class="question-answers">
-                  ${
-                    questionAnswers.length
-                      ?questionAnswers.map(answer=>`
-                        <div class="answer-item">
-                          <strong>${escapeHTML(answer.iconName||"名前なし")}</strong>
-                          <p>${escapeHTML(answer.text||"").replace(/\n/g,"<br>")}</p>
-                          ${
-                            answer.userId===currentUserId
-                              ?`<button data-edit-answer="${escapeHTML(answer.id)}"
-                                  data-question-id="${escapeHTML(question.id)}">
-                                  回答を編集
-                                </button>`
-                              :""
-                          }
-                        </div>
-                      `).join("")
-                      :'<p class="small">まだ回答はありません。</p>'
-                  }
-                </div>
+                
+<div class="question-answers">
+  ${
+    questionAnswers.length
+      ?questionAnswers.map(answer=>`
+        <div class="answer-item">
+          <strong>${escapeHTML(answer.iconName||"名前なし")}</strong>
+          <p>${escapeHTML(answer.text||"").replace(/\n/g,"<br>")}</p>
+          ${
+            answer.userId===currentUserId
+              ?`<button data-edit-answer="${escapeHTML(answer.id)}"
+                  data-question-id="${escapeHTML(question.id)}">
+                  回答を編集
+                </button>`
+              :""
+          }
+        </div>
+      `).join("")
+      :'<p class="small">まだ回答はありません。</p>'
+  }
+
+  <div class="answer-form">
+    <p><strong>キャラクターを選んで回答する</strong></p>
+
+    <div class="answer-icon-list">
+      ${
+        (Array.isArray(state.icons)?state.icons:[]).map(icon=>{
+          const alreadyAnswered=questionAnswers.some(answer=>
+            answer.userId===currentUserId &&
+            answer.iconId===icon.id
+          );
+
+          return `
+            <button
+              class="bank-icon"
+              data-answer-icon="${escapeHTML(icon.id)}"
+              data-question-id="${escapeHTML(question.id)}"
+              title="${escapeHTML(icon.name)}"
+              style="background:${escapeHTML(icon.color||colors[0])}"
+              ${alreadyAnswered?"disabled":""}
+            >
+              ${
+                icon.image
+                  ?`<img src="${escapeHTML(icon.image)}">`
+                  :escapeHTML(icon.initial||icon.name?.slice(0,1)||"？")
+              }
+            </button>
+          `;
+        }).join("")
+      }
+    </div>
+
+    <p class="small" data-selected-answer-icon="${escapeHTML(question.id)}">
+      キャラクターを選択してください。
+    </p>
+
+    <textarea
+      data-answer-text="${escapeHTML(question.id)}"
+      placeholder="回答を入力してください。"
+      rows="4"
+    ></textarea>
+
+    <button
+      class="primary"
+      data-submit-answer="${escapeHTML(question.id)}"
+    >
+      回答を投稿
+    </button>
+  </div>
+</div>
+
               </details>
             `;
           }).join("")}
