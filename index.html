@@ -1079,9 +1079,14 @@ function renderQuestionRoom(){
             return `
               <details class="question-item">
                 
+
 <summary>
   <strong>${escapeHTML(question.text)}</strong>
+  <span class="small">
+    （回答 ${questionAnswers.length}件）
+  </span>
 </summary>
+
 
 <div class="question-actions">
   <button data-edit-question="${escapeHTML(question.id)}">
