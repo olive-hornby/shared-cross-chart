@@ -723,6 +723,66 @@ textarea{min-height:76px;resize:vertical}
   transform:rotate(90deg);
 }
 
+  
+/* 質問ルーム：質問一覧 */
+.question-list{
+  padding:6px 14px 12px 28px;
+  background:#fafbfe;
+}
+
+.question-item{
+  border-bottom:1px solid #e8ebf2;
+}
+
+.question-item:last-child{
+  border-bottom:none;
+}
+
+.question-item > summary{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:13px 8px;
+  cursor:pointer;
+  list-style:none;
+  transition:background .15s;
+}
+
+.question-item > summary::-webkit-details-marker{
+  display:none;
+}
+
+.question-item > summary::before{
+  content:"›";
+  font-size:20px;
+  color:#8994aa;
+  transition:transform .2s;
+}
+
+.question-item[open] > summary::before{
+  transform:rotate(90deg);
+}
+
+.question-item > summary strong{
+  flex:1;
+  font-size:14px;
+  font-weight:600;
+}
+
+.question-item > summary .small{
+  white-space:nowrap;
+  font-size:11px;
+}
+
+.question-item > summary:hover{
+  background:#f0f3fa;
+}
+
+.question-item[open] > summary{
+  background:#f0f3fa;
+}
+
+  
 </style>
 
 </head>
