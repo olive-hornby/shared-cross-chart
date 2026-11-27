@@ -2644,9 +2644,37 @@ const canvas=await window.html2canvas(node,{
   useCORS:true
 });
 
-    canvas.toBlob(blob=>{
-      if(blob)download(blob,"cross-chart.png");
-    });
+  const footerHeight=56;
+
+const exportCanvas=document.createElement("canvas");
+exportCanvas.width=canvas.width;
+exportCanvas.height=canvas.height+footerHeight;
+
+const ctx=exportCanvas.getContext("2d");
+
+// 背景
+ctx.fillStyle="#ffffff";
+ctx.fillRect(0,0,exportCanvas.width,exportCanvas.height);
+
+// チャート本体
+ctx.drawImage(canvas,0,0);
+
+// コピーライト
+ctx.fillStyle="#8992a5";
+ctx.font="20px sans-serif";
+ctx.textAlign="right";
+ctx.textBaseline="middle";
+
+ctx.fillText(
+  "© 2026 うちよそ+",
+  exportCanvas.width-24,
+  canvas.height+footerHeight/2
+);
+
+// PNG保存
+exportCanvas.toBlob(blob=>{
+  if(blob)download(blob,"uchiyoso-plus.png");
+});
     }finally{
     chartsNode.classList.remove("exporting");
 
