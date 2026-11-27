@@ -2593,7 +2593,8 @@ $("exportPng").onclick=async()=>{
     });
   }
 
-  const node=$("charts");
+  const chartsNode=$("charts");
+const node=chartsNode.querySelector(`[data-card="${activeChart}"]`);
 
   const images=Array.from(node.querySelectorAll("img"));
   await Promise.all(images.map(img=>{
@@ -2619,7 +2620,7 @@ $("exportPng").onclick=async()=>{
   }));
 
    try{
-    node.classList.add("exporting");
+    chartsNode.classList.add("exporting");
 
     markers.forEach(marker=>{
       const rect=marker.getBoundingClientRect();
@@ -2640,7 +2641,7 @@ $("exportPng").onclick=async()=>{
       if(blob)download(blob,"cross-chart.png");
     });
     }finally{
-    node.classList.remove("exporting");
+    chartsNode.classList.remove("exporting");
 
     markers.forEach((marker,i)=>{
       marker.style.transform=originalStyles[i].transform;
