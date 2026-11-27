@@ -1258,7 +1258,10 @@ function renderQuestionRoom(){
     );
 
     return `
-      <details class="question-category">
+      <details
+  class="question-category"
+  data-category-id="${escapeHTML(category.id)}"
+>
         
 
 
@@ -1293,7 +1296,10 @@ function renderQuestionRoom(){
               :[];
 
             return `
-              <details class="question-item">
+              <details
+  class="question-item"
+  data-question-id="${escapeHTML(question.id)}"
+>
                 
 
 <summary>
