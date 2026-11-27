@@ -1730,11 +1730,33 @@ questionUnsubscribe=onValue(questionRef,snap=>{
     const raw=snap.val();
 
     // 新形式のデータならそのまま読み込む
+
 if(
   Array.isArray(raw.categories) &&
   Array.isArray(raw.questions)
 ){
-  questionData=raw;
+  // 同じIDの質問は最初の1件だけ残す
+  const seenQuestionIds=new Set();
+
+  const uniqueQuestions=raw.questions.filter(question=>{
+    if(seenQuestionIds.has(question.id)){
+      return false;
+    }
+
+    seenQuestionIds.add(question.id);
+    return true;
+  });
+
+  questionData={
+    ...raw,
+    questions:uniqueQuestions
+  };
+
+  // 重複があった場合はFirebaseにも整理したデータを保存
+  if(uniqueQuestions.length!==raw.questions.length){
+    set(questionRef,questionData);
+  }
+
     }else{
       // 古い形式の質問は残し、回答はテストデータとして引き継がない
       const oldQuestions=Array.isArray(raw.questions)
