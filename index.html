@@ -2618,7 +2618,9 @@ $("exportPng").onclick=async()=>{
     top:marker.style.top
   }));
 
-  try{
+   try{
+    node.classList.add("exporting");
+
     markers.forEach(marker=>{
       const rect=marker.getBoundingClientRect();
       const parent=marker.parentElement.getBoundingClientRect();
@@ -2637,7 +2639,9 @@ $("exportPng").onclick=async()=>{
     canvas.toBlob(blob=>{
       if(blob)download(blob,"cross-chart.png");
     });
-  }finally{
+    }finally{
+    node.classList.remove("exporting");
+
     markers.forEach((marker,i)=>{
       marker.style.transform=originalStyles[i].transform;
       marker.style.left=originalStyles[i].left;
