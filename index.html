@@ -2231,7 +2231,7 @@ $("menuToggle").addEventListener("click",()=>{
 $("showChartPage").addEventListener("click",()=>{
   $("chartPage").classList.remove("hidden");
   $("questionPage").classList.add("hidden");
-   $("exportPng").classList.remove("hidden");
+   $("exportPng").parentElement.classList.remove("hidden");
 
   $("showChartPage").classList.add("primary");
   $("showQuestionPage").classList.remove("primary");
@@ -2240,7 +2240,7 @@ $("showChartPage").addEventListener("click",()=>{
 $("showQuestionPage").addEventListener("click",()=>{
   $("chartPage").classList.add("hidden");
   $("questionPage").classList.remove("hidden");
-    $("exportPng").classList.add("hidden");
+   $("exportPng").parentElement.classList.add("hidden");
 
   $("showChartPage").classList.remove("primary");
   $("showQuestionPage").classList.add("primary");
