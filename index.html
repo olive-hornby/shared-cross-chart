@@ -1157,8 +1157,9 @@ function render(){
   <div class="chart-tools-left">
     <button data-edit-title="${c.id}">✎ タイトル</button>
 
-   <select data-theme="${c.id}" aria-label="タイトルテーマ">
-  <option value="simple" ${(!c.titleTheme||c.titleTheme==="standard"||c.titleTheme==="simple")?"selected":""}>シンプル</option>
+  <select data-theme="${c.id}" aria-label="タイトルテーマ">
+  <option value="standard" ${c.titleTheme==="standard"?"selected":""}>スタンダード</option>
+  <option value="simple" ${(!c.titleTheme||c.titleTheme==="simple")?"selected":""}>シンプル</option>
   <option value="cute" ${c.titleTheme==="cute"?"selected":""}>キュート</option>
   <option value="dark" ${c.titleTheme==="dark"?"selected":""}>ダーク</option>
   <option value="elegant" ${c.titleTheme==="elegant"?"selected":""}>エレガント</option>
