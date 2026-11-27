@@ -907,11 +907,18 @@ textarea{min-height:76px;resize:vertical}
 #charts.exporting .chart-tools-right{
   display:none !important;
 }
-
-  /* PNG書き出し時だけアイコンを大きくする */
+/* PNG書き出し時だけアイコンを大きくする */
 #charts.exporting .marker{
   width:72px;
   height:72px;
+}
+
+/* スマホからPNGを書き出す場合 */
+@media(max-width:760px){
+  #charts.exporting .marker{
+    width:56px;
+    height:56px;
+  }
 }
 
 /* PNG書き出しボタンと説明 */
