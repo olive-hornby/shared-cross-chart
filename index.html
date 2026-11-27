@@ -913,6 +913,19 @@ textarea{min-height:76px;resize:vertical}
   width:72px;
   height:72px;
 }
+
+  .export-png-group{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:3px;
+}
+
+.export-png-group span{
+  font-size:10px;
+  color:#8992a5;
+  white-space:nowrap;
+}
 </style>
 
 </head>
@@ -940,7 +953,10 @@ textarea{min-height:76px;resize:vertical}
 <div class="toolbar">
 <button class="primary" id="addChart">＋ チャート追加</button>
 <button id="layoutToggle">表示：複数</button>
-<button id="exportPng">PNG書き出し</button>
+<div class="export-png-group">
+  <button id="exportPng">PNG書き出し</button>
+  <span>選択中の1枚のみ</span>
+</div>
 <button id="exportJson">データ書き出し</button>
 <label class="row small">データ読込 <input type="file" id="importJson" accept="application/json" style="max-width:190px"></label>
 <span class="spacer"></span><span class="small">アイコンを選んでから盤面をクリック、またはドラッグして移動</span>
