@@ -2424,12 +2424,36 @@ $("questionCategories").addEventListener("click",async e=>{
       answers
     };
 
+   
+    // 現在開いているカテゴリと質問を記録
+    const openCategory=document.querySelector(
+      ".question-category[open]"
+    );
+    const openQuestion=document.querySelector(
+      ".question-item[open]"
+    );
+
+    const openCategoryId=openCategory?.dataset.categoryId;
+    const openQuestionId=openQuestion?.dataset.questionId;
+
     await set(questionRef,nextData);
 
     questionData=nextData;
     renderQuestionRoom();
 
-    alert("回答を編集しました！");
+    // 再描画後、同じカテゴリと質問を開く
+    document.querySelectorAll(".question-category").forEach(category=>{
+      if(category.dataset.categoryId===openCategoryId){
+        category.open=true;
+      }
+    });
+
+    document.querySelectorAll(".question-item").forEach(item=>{
+      if(item.dataset.questionId===openQuestionId){
+        item.open=true;
+      }
+    });
+
   }
 });
 
