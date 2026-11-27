@@ -887,6 +887,22 @@ textarea{min-height:76px;resize:vertical}
 }
 
   
+.answer-bubble button[data-edit-answer]{
+  width:30px;
+  height:30px;
+  padding:0;
+  border-radius:7px;
+  background:transparent;
+  font-size:14px;
+  opacity:.65;
+}
+
+.answer-bubble button[data-edit-answer]:hover{
+  background:#e9ecf5;
+  opacity:1;
+}
+
+  
 </style>
 
 </head>
@@ -1335,10 +1351,14 @@ function renderQuestionRoom(){
     <p>${escapeHTML(answer.text||"").replace(/\n/g,"<br>")}</p>
     ${
       answer.userId===currentUserId
-        ?`<button data-edit-answer="${escapeHTML(answer.id)}"
-            data-question-id="${escapeHTML(question.id)}">
-            回答を編集
-          </button>`
+        ?`
+<button
+  data-edit-answer="${escapeHTML(answer.id)}"
+  data-question-id="${escapeHTML(question.id)}"
+  title="回答を編集"
+  aria-label="回答を編集"
+>✏️</button>
+`
         :""
     }
   </div>
