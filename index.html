@@ -1763,6 +1763,11 @@ if(
   }
 
   console.log("質問データ受信成功",questionData);
+  console.log("質問一覧の内容",questionData.questions.map(q=>({
+  id:q.id,
+  categoryId:q.categoryId,
+  text:q.text
+})));
   renderQuestionRoom();
 },error=>{
   console.error("質問データ受信エラー",error);
