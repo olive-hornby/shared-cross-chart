@@ -1461,11 +1461,10 @@ $("questionCategories").addEventListener("click",async e=>{
     };
 
     await set(questionRef,nextData);
-    questionData=nextData;
-    renderQuestionRoom();
+questionData=nextData;
+renderQuestionRoom();
 
-    alert("カテゴリ名を変更しました！");
-    return;
+return;
   }
 
   // カテゴリを削除
