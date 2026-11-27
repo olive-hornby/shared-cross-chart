@@ -2624,10 +2624,10 @@ $("exportPng").onclick=async()=>{
     });
 
     const canvas=await window.html2canvas(node,{
-      backgroundColor:"#f4f5f8",
-      scale:2,
-      useCORS:true
-    });
+  backgroundColor:"#f4f5f8",
+  scale:3,
+  useCORS:true
+});
 
     canvas.toBlob(blob=>{
       if(blob)download(blob,"cross-chart.png");
