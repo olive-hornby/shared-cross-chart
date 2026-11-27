@@ -1564,12 +1564,41 @@ $("questionCategories").addEventListener("click",async e=>{
       questions
     };
 
-    await set(questionRef,nextData);
-    questionData=nextData;
-    renderQuestionRoom();
+    
+// 現在開いているカテゴリと質問を記録
+const openCategory=document.querySelector(
+  ".question-category[open]"
+);
+const openQuestion=document.querySelector(
+  ".question-item[open]"
+);
 
-    alert("質問文を変更しました！");
-    return;
+const openCategoryId=openCategory?.dataset.categoryId;
+const openQuestionId=openQuestion?.dataset.questionId;
+
+await set(questionRef,nextData);
+questionData=nextData;
+renderQuestionRoom();
+
+// 再描画後、同じカテゴリと質問を開く
+const categories=document.querySelectorAll(".question-category");
+
+categories.forEach(category=>{
+  if(category.dataset.categoryId===openCategoryId){
+    category.open=true;
+  }
+});
+
+const questionItems=document.querySelectorAll(".question-item");
+
+questionItems.forEach(item=>{
+  if(item.dataset.questionId===openQuestionId){
+    item.open=true;
+  }
+});
+
+return;
+
   }
 
   // 質問を削除
