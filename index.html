@@ -1922,7 +1922,56 @@ async function createRoom(){
 
   // 新しいルームの盤面を初期化
   const newRoomRef=ref(database,"rooms/"+hash);
-  await set(newRoomRef,defaultState());
+  await set(newRoomRef,{
+  charts:[
+    {
+      id:uid(),
+      title:"食事志向",
+      top:"たくさん食べる",
+      bottom:"小食",
+      left:"偏食家",
+      right:"好き嫌い無し",
+      markers:[]
+    },
+    {
+      id:uid(),
+      title:"睡眠事情",
+      top:"睡眠時間が長い",
+      bottom:"睡眠時間が短い",
+      left:"寝相が悪い",
+      right:"寝相がいい",
+      markers:[]
+    },
+    {
+      id:uid(),
+      title:"声",
+      top:"高い",
+      bottom:"低い",
+      left:"早口",
+      right:"ゆっくり",
+      markers:[]
+    },
+    {
+      id:uid(),
+      title:"私服",
+      top:"おしゃれ",
+      bottom:"ださい",
+      left:"派手",
+      right:"シンプル",
+      markers:[]
+    },
+    {
+      id:uid(),
+      title:"料理",
+      top:"おいしい",
+      bottom:"まずい",
+      left:"レシピ通り",
+      right:"自己流",
+      markers:[]
+    }
+  ],
+  icons:[]
+});
 
   // 新規作成後は通常の参加処理で接続
   await join();
