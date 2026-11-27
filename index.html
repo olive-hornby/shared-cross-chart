@@ -1926,50 +1926,60 @@ async function createRoom(){
   await set(newRoomRef,{
   charts:[
     {
-      id:uid(),
-      title:"食事志向",
-      top:"たくさん食べる",
-      bottom:"小食",
-      left:"偏食家",
-      right:"好き嫌い無し",
-      markers:[]
-    },
+  id:uid(),
+  title:"食事志向",
+  top:"たくさん食べる",
+  bottom:"小食",
+  left:"偏食家",
+  right:"好き嫌い無し",
+  markers:[],
+  titleTheme:"elegant",
+  bgColor:"#FFF4C7"
+},
     {
-      id:uid(),
-      title:"睡眠事情",
-      top:"睡眠時間が長い",
-      bottom:"睡眠時間が短い",
-      left:"寝相が悪い",
-      right:"寝相がいい",
-      markers:[]
-    },
+  id:uid(),
+  title:"睡眠事情",
+  top:"睡眠時間が長い",
+  bottom:"睡眠時間が短い",
+  left:"寝相が悪い",
+  right:"寝相がいい",
+  markers:[],
+  titleTheme:"dark",
+  bgColor:"#263653"
+},
     {
-      id:uid(),
-      title:"声",
-      top:"高い",
-      bottom:"低い",
-      left:"早口",
-      right:"ゆっくり",
-      markers:[]
-    },
+  id:uid(),
+  title:"声",
+  top:"高い",
+  bottom:"低い",
+  left:"早口",
+  right:"ゆっくり",
+  markers:[],
+  titleTheme:"simple",
+  bgColor:"#FCE5E8"
+},
     {
-      id:uid(),
-      title:"私服",
-      top:"おしゃれ",
-      bottom:"ださい",
-      left:"派手",
-      right:"シンプル",
-      markers:[]
-    },
+  id:uid(),
+  title:"私服",
+  top:"おしゃれ",
+  bottom:"ださい",
+  left:"派手",
+  right:"シンプル",
+  markers:[],
+  titleTheme:"cute",
+  bgColor:"#FCE8F2"
+},
     {
-      id:uid(),
-      title:"料理",
-      top:"おいしい",
-      bottom:"まずい",
-      left:"レシピ通り",
-      right:"自己流",
-      markers:[]
-    }
+  id:uid(),
+  title:"料理",
+  top:"おいしい",
+  bottom:"まずい",
+  left:"レシピ通り",
+  right:"自己流",
+  markers:[],
+  titleTheme:"standard",
+  bgColor:"#FFF8D9"
+},
   ],
   icons:[]
 });
