@@ -2631,9 +2631,11 @@ const node=chartsNode.querySelector(`[data-card="${activeChart}"]`);
       marker.style.top=(rect.top-parent.top)+"px";
     });
 
-    const canvas=await window.html2canvas(node,{
+    const exportScale=1920/node.getBoundingClientRect().width;
+
+const canvas=await window.html2canvas(node,{
   backgroundColor:"#f4f5f8",
-  scale:3,
+  scale:exportScale,
   useCORS:true
 });
 
